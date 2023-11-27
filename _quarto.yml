@@ -7,11 +7,11 @@ website:
     right:
       - about.qmd
       - icon: github
-        href: https://github.com/
-      - icon: twitter
-        href: https://twitter.com
+        href: https://github.com/EmiliaCMB
 format:
   html:
+    toc: true
+    df-print: paged
     theme: minty
     css: styles.css
 
