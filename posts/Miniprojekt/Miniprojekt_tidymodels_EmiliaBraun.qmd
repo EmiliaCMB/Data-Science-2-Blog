@@ -1,6 +1,12 @@
 ---
 title: "Miniprojekt tidymodels"
+author: "Emilia Braun"
+date: "2023-11-28"
+categories: [Textanalyse, Tidymodels, Klassifikation]
 ---
+
+Textanalyse zur Klassifikation von Hatespeech
+
 ```{r}
 library(tidyverse)
 library(easystats)
