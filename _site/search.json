@@ -1,0 +1,114 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this blog"
+  },
+  {
+    "objectID": "Analyse.html",
+    "href": "Analyse.html",
+    "title": "Analyse",
+    "section": "",
+    "text": "library(tidyverse)\n\n-- Attaching packages --------------------------------------- tidyverse 1.3.1 --\n\n\nv ggplot2 3.4.2     v purrr   1.0.1\nv tibble  3.2.1     v dplyr   1.1.2\nv tidyr   1.2.0     v stringr 1.5.0\nv readr   2.1.2     v forcats 0.5.1\n\n\n-- Conflicts ------------------------------------------ tidyverse_conflicts() --\nx dplyr::filter() masks stats::filter()\nx dplyr::lag()    masks stats::lag()\n\nlibrary(tokenizers)\nlibrary(tidyverse)\nlibrary(tidytext)\nlibrary(hcandersenr)\nlibrary(SnowballC)  # Stemming\nlibrary(lsa)  # Stopwörter\nlibrary(easystats)  # Komfort für deskriptive Statistiken, wie `describe_distribution`\n\n# Attaching packages: easystats 0.6.0 (red = needs update)\nv bayestestR  0.13.1   v correlation 0.8.4 \nx datawizard  0.7.1    x effectsize  0.8.3 \nx insight     0.19.2   v modelbased  0.8.6 \nx performance 0.10.3   x parameters  0.21.0\nv report      0.5.7    x see         0.8.0 \n\nRestart the R-Session and update packages in red with `easystats::easystats_update()`.\n\nlibrary(textclean)  # Emojis ersetzen\nlibrary(wordcloud)\n\nLade nötiges Paket: RColorBrewer"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Data Science 2",
+    "section": "",
+    "text": "Miniprojekt tidymodels\n\n\n\n\n\n\n\n\n\n\n \n\n\n\n\n  \n\n\n\n\nPost With Code\n\n\n\n\n\n\n\nnews\n\n\ncode\n\n\nanalysis\n\n\n\n\n\n\n\n\n\n\n\nOct 23, 2023\n\n\nHarlow Malloc\n\n\n\n\n\n\n  \n\n\n\n\nWelcome To My Blog\n\n\n\n\n\n\n\nnews\n\n\n\n\n\n\n\n\n\n\n\nOct 20, 2023\n\n\nTristan O’Malley\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html",
+    "href": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html",
+    "title": "Miniprojekt tidymodels",
+    "section": "",
+    "text": "library(tidyverse)\n\n-- Attaching packages --------------------------------------- tidyverse 1.3.1 --\n\n\nv ggplot2 3.4.2     v purrr   1.0.1\nv tibble  3.2.1     v dplyr   1.1.2\nv tidyr   1.2.0     v stringr 1.5.0\nv readr   2.1.2     v forcats 0.5.1\n\n\n-- Conflicts ------------------------------------------ tidyverse_conflicts() --\nx dplyr::filter() masks stats::filter()\nx dplyr::lag()    masks stats::lag()\n\nlibrary(easystats)\n\n# Attaching packages: easystats 0.6.0 (red = needs update)\nv bayestestR  0.13.1   v correlation 0.8.4 \nx datawizard  0.7.1    x effectsize  0.8.3 \nx insight     0.19.2   v modelbased  0.8.6 \nx performance 0.10.3   x parameters  0.21.0\nv report      0.5.7    x see         0.8.0 \n\nRestart the R-Session and update packages in red with `easystats::easystats_update()`.\n\nlibrary(tidymodels)\n\n-- Attaching packages -------------------------------------- tidymodels 1.0.0 --\n\n\nv broom        1.0.4     v rsample      1.0.0\nv dials        1.0.0     v tune         1.1.1\nv infer        1.0.2     v workflows    1.1.3\nv modeldata    1.1.0     v workflowsets 1.0.0\nv parsnip      1.0.4     v yardstick    1.0.0\nv recipes      1.0.8     \n\n\n-- Conflicts ----------------------------------------- tidymodels_conflicts() --\nx scales::discard()        masks purrr::discard()\nx dplyr::filter()          masks stats::filter()\nx recipes::fixed()         masks stringr::fixed()\nx yardstick::get_weights() masks insight::get_weights()\nx dplyr::lag()             masks stats::lag()\nx yardstick::mae()         masks performance::mae()\nx parsnip::null_model()    masks insight::null_model()\nx infer::p_value()         masks parameters::p_value()\nx tune::parameters()       masks dials::parameters(), parameters::parameters()\nx yardstick::rmse()        masks performance::rmse()\nx dials::smoothness()      masks datawizard::smoothness()\nx yardstick::spec()        masks readr::spec()\nx recipes::step()          masks stats::step()\n* Learn how to get started at https://www.tidymodels.org/start/\n\nlibrary(tidytext)  \nlibrary(textrecipes)  \nlibrary(lsa)  \n\nLade nötiges Paket: SnowballC\n\nlibrary(discrim)  \n\n\nAttache Paket: 'discrim'\n\n\nDas folgende Objekt ist maskiert 'package:dials':\n\n    smoothness\n\n\nDas folgende Objekt ist maskiert 'package:datawizard':\n\n    smoothness\n\nlibrary(naivebayes)\n\nnaivebayes 0.9.7 loaded\n\nlibrary(tictoc)  \nlibrary(fastrtext)  \n\n\nAttache Paket: 'fastrtext'\n\n\nDas folgende Objekt ist maskiert 'package:insight':\n\n    get_parameters\n\nlibrary(remoji)  \nlibrary(tokenizers)  \nlibrary(syuzhet)\n\n\nAttache Paket: 'syuzhet'\n\n\nDas folgende Objekt ist maskiert 'package:scales':\n\n    rescale\n\n\nDas folgende Objekt ist maskiert 'package:datawizard':\n\n    rescale\n\nlibrary(pradadata)\nlibrary(beepr)\nlibrary(quanteda.textstats)"
+  },
+  {
+    "objectID": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#textlänge-in-abhängigkeit-von-c2-kategorie",
+    "href": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#textlänge-in-abhängigkeit-von-c2-kategorie",
+    "title": "Miniprojekt tidymodels",
+    "section": "Textlänge in Abhängigkeit von c2 Kategorie",
+    "text": "Textlänge in Abhängigkeit von c2 Kategorie\n\ntrain1 &lt;-\n  germeval_train |&gt; \n  mutate(text_length = str_length(text))\n\nggplot(train1, aes(x = c1, y = text_length, color = c2)) +\n  geom_point() +\n  labs(title = \"Germeval 2018 Datensatz Visualisierung\",\n       x = \"c1\",\n       y = \"Textlänge\",\n       color = \"c2\")"
+  },
+  {
+    "objectID": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#histogramm-der-textlänge",
+    "href": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#histogramm-der-textlänge",
+    "title": "Miniprojekt tidymodels",
+    "section": "Histogramm der Textlänge",
+    "text": "Histogramm der Textlänge\n\nggplot(train1, aes(x = text_length)) +\n  geom_histogram(binwidth = 5, fill = \"blue\", color = \"white\") +\n  labs(title = \"Histogramm der Textlängen\", x = \"Textlänge\", y = \"Häufigkeit\")"
+  },
+  {
+    "objectID": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#boxplot-für-verschiedene-kateforien",
+    "href": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#boxplot-für-verschiedene-kateforien",
+    "title": "Miniprojekt tidymodels",
+    "section": "Boxplot für verschiedene Kateforien",
+    "text": "Boxplot für verschiedene Kateforien\n\nggplot(train1, aes(x = c1, y = text_length, fill = c2)) +\n  geom_boxplot() +\n  labs(title = \"Boxplot der Textlängen nach c1\", x = \"c1\", y = \"Textlänge\", fill = \"c2\")"
+  },
+  {
+    "objectID": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#model-folds",
+    "href": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#model-folds",
+    "title": "Miniprojekt tidymodels",
+    "section": "Model & Folds",
+    "text": "Model & Folds\n\n# model:\nmod1 &lt;-\n  rand_forest(mode = \"classification\")\n\n\n# cv:\nset.seed(42)\nrsmpl &lt;- vfold_cv(germeval_train, v = 5)"
+  },
+  {
+    "objectID": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#recipe",
+    "href": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#recipe",
+    "title": "Miniprojekt tidymodels",
+    "section": "recipe:",
+    "text": "recipe:\n\nrec 1\n\nd_train &lt;-\n  germeval_train |&gt; \n  select(id, c1, text)\n\n\nrec1 &lt;-\n  recipe(c1 ~ ., data = d_train) |&gt; \n  update_role(id, new_role = \"id\")  |&gt; \n  update_role(text, new_role = \"ignore\") |&gt; \n  step_mutate(n_schimpf = get_sentiment(text,  # aus `syuzhet`\n                                    method = \"custom\",\n                                    lexicon = schimpfwoerter)) |&gt; \n  step_mutate(n_emo = get_sentiment(text,  # aus `syuzhet`\n                                    method = \"custom\",\n                                    lexicon = sentiws))  |&gt;\n  step_tokenize(text) %&gt;%\n  step_stopwords(text, keep = FALSE) \n\nrec1_prepped &lt;- prep(rec1)\n\nd_rec1 &lt;- bake(rec1_prepped, new_data = NULL)\n\nhead(d_rec1)\n\n\n\n  \n\n\n\n\n\nrec2\n\nrec2 &lt;-\n  recipe(c1 ~ ., data = d_train) |&gt; \n  update_role(id, new_role = \"id\")  |&gt; \n  update_role(text, new_role = \"ignore\") |&gt; \n  step_mutate(n_schimpf = get_sentiment(text,  # aus `syuzhet`\n                                    method = \"custom\",\n                                    lexicon = schimpfwoerter)) |&gt; \n  step_mutate(n_emo = get_sentiment(text,  # aus `syuzhet`\n                                    method = \"custom\",\n                                    lexicon = sentiws))  |&gt; \n  step_tokenize(text) %&gt;%\n  step_stopwords(text, keep = FALSE) |&gt; \n  step_tokenfilter(text, max_tokens = 1e3) |&gt; \n  step_tfidf(text) \n\n\n\nrec2_prepped &lt;- prep(rec2)\n\nd_rec2 &lt;- bake(rec2_prepped, new_data = NULL)\n\nhead(d_rec2)"
+  },
+  {
+    "objectID": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#workflow",
+    "href": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#workflow",
+    "title": "Miniprojekt tidymodels",
+    "section": "workflow:",
+    "text": "workflow:\n\nwf1\n\nwf1 &lt;-\n  workflow() %&gt;% \n  add_model(mod1) %&gt;% \n  add_recipe(rec1)\n\n\n\nwf2\n\nwf2 &lt;-\n  workflow() %&gt;% \n  add_model(mod1) %&gt;% \n  add_recipe(rec2)"
+  },
+  {
+    "objectID": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#fit1",
+    "href": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#fit1",
+    "title": "Miniprojekt tidymodels",
+    "section": "Fit1",
+    "text": "Fit1\n\ntic()\nfit1 &lt;-\n  fit(wf1,\n      data = germeval_train)\ntoc()\n\n23.27 sec elapsed\n\nbeep(3)"
+  },
+  {
+    "objectID": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#fit-2",
+    "href": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#fit-2",
+    "title": "Miniprojekt tidymodels",
+    "section": "Fit 2",
+    "text": "Fit 2\n\ntic()\nfit2 &lt;-\n  fit(wf2,\n      data = germeval_train)\ntoc()\n\n92.97 sec elapsed\n\nbeep(3)"
+  },
+  {
+    "objectID": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#pred1",
+    "href": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#pred1",
+    "title": "Miniprojekt tidymodels",
+    "section": "pred1",
+    "text": "pred1\n\ntic()\npreds &lt;-\n  predict(fit1, new_data = germeval_test)\ntoc()\n\n13.9 sec elapsed"
+  },
+  {
+    "objectID": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#pred2",
+    "href": "posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html#pred2",
+    "title": "Miniprojekt tidymodels",
+    "section": "pred2",
+    "text": "pred2\n\ntic()\npreds2 &lt;-\n  predict(fit2, new_data = germeval_test)\ntoc()\n\n15.25 sec elapsed\n\n\n\nd_test &lt;-\n  germeval_test |&gt; \n  bind_cols(preds) |&gt; \n  mutate(c1 = as.factor(c1))\n\nd_test2 &lt;-\n  germeval_test |&gt; \n  bind_cols(preds2) |&gt; \n  mutate(c1 = as.factor(c1))\n\n\nmy_metrics &lt;- metric_set(accuracy, f_meas)\nmy_metrics(d_test,\n           truth = c1,\n           estimate = .pred_class)\n\n\n\n  \n\n\nmy_metrics &lt;- metric_set(accuracy, f_meas)\nmy_metrics(d_test2,\n           truth = c1,\n           estimate = .pred_class)"
+  },
+  {
+    "objectID": "posts/post-with-code/index.html",
+    "href": "posts/post-with-code/index.html",
+    "title": "Post With Code",
+    "section": "",
+    "text": "This is a post with executable code.\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "posts/welcome/index.html",
+    "href": "posts/welcome/index.html",
+    "title": "Welcome To My Blog",
+    "section": "",
+    "text": "This is the first post in a Quarto blog. Welcome!\n\nSince this post doesn’t specify an explicit image, the first image in the post will be used in the listing page of posts."
+  }
+]
