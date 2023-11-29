@@ -24,6 +24,7 @@ library(syuzhet)
 library(pradadata)
 library(beepr)
 library(quanteda.textstats)
+library(ggthemes)
 ```
 
 # Daten laden
@@ -50,14 +51,15 @@ ggplot(train1, aes(x = c1, y = text_length, color = c2)) +
   labs(title = "Germeval 2018 Datensatz Visualisierung",
        x = "c1",
        y = "Textlänge",
-       color = "c2")
+       color = "c2") +
+  scale_color_tableau("Nuriel Stone")
 ```
 
 ## Histogramm der Textlänge
 
 ```{r}
 ggplot(train1, aes(x = text_length)) +
-  geom_histogram(binwidth = 5, fill = "blue", color = "white") +
+  geom_histogram(binwidth = 5, fill = "#94d0c0", color = "white") +
   labs(title = "Histogramm der Textlängen", x = "Textlänge", y = "Häufigkeit")
 
 ```
@@ -67,7 +69,8 @@ ggplot(train1, aes(x = text_length)) +
 ```{r}
 ggplot(train1, aes(x = c1, y = text_length, fill = c2)) +
   geom_boxplot() +
-  labs(title = "Boxplot der Textlängen nach c1", x = "c1", y = "Textlänge", fill = "c2")
+  labs(title = "Boxplot der Textlängen nach c1", x = "c1", y = "Textlänge", fill = "c2")+
+  scale_fill_tableau("Nuriel Stone")
 
 ```
 
