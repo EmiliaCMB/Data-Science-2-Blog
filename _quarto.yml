@@ -2,7 +2,7 @@ project:
   type: website
 
 website:
-  title: "Data Science 2"
+  title: "ecmbblog"
   navbar:
     right:
       - about.qmd
