@@ -7,7 +7,7 @@ categories: [Textanalyse, Tidymodels, Klassifikation]
 
 Textanalyse zur Klassifikation von Hatespeech
 
-```{r echo=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(easystats)
 library(tidymodels)
