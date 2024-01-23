@@ -1,0 +1,793 @@
+---
+title: "Projekt"
+author: "Emilia Braun"
+date: "2024-01-12"
+image: "raucher.jpeg"
+format:
+  html:
+    embed-resources: true
+---
+# Raucherstatus Klassifikation
+
+Anhand von verschiedenen biologischen Daten und Signalen soll in einer Soft Classification bestimmt werden, mit welcher Wahrscheinlichkeit eine Person Raucher ist.
+
+## 1. Forschungsfrage
+
+Im Folgenden sollen sowohl neue Beobachtungsfälle auf ihre Wahrscheinlichkeit hin, Raucher zu sein, klassifiziert werden, als auch mögliche Effekte von biologischen Signalen auf den Raucherstatus identifiziert werden.
+
+Warum könnte eine Klassifikation des Raucherstatus interessieren? 
+
+----------
+* Gesundheitswesen: Eine Klassifikation des Raucherstatus auf Basis von biologischen Signalen kann verwendet werden, um Menschen mit einem erhöhten Risiko für Raucherkrankheiten zu identifizieren. Dies kann dazu beitragen, diese Krankheiten zu verhindern oder zu behandeln.
+* Raucherentwöhnung: Eine Klassifikation des Raucherstatus auf Basis von biologischen Signalen kann verwendet werden, um die Wirksamkeit von Raucherentwöhnungsmaßnahmen zu bewerten. Dies kann dazu beitragen, die Entwicklung neuer und effektiverer Raucherentwöhnungsmaßnahmen zu unterstützen.
+* Marktforschung: Eine Klassifikation des Raucherstatus auf Basis von biologischen Signalen kann verwendet werden, um neue Produkte und Dienstleistungen für Raucher zu entwickeln. Dies kann dazu beitragen, die Raucherprävention und -entwöhnung zu unterstützen.
+
+
+
+## 2. Vorbereitung
+
+### 2.1 Pakete laden
+```{r  message=FALSE, warning=FALSE}
+library(tidyverse)
+library(tidymodels)
+library(easystats)
+library(glmnet)
+library(corrr)
+library(fastDummies)
+library(reshape2)
+library(lubridate)
+library(tictoc)
+library(xgboost)
+library(doParallel)
+library(cowplot)
+library(rlang)
+library(purrr)
+library(timetk)
+library(discrim)
+library(ggthemes)
+library(klaR)
+library(rstanarm)
+library(car)
+library(caret)
+library(pROC)
+```
+
+### 2.2 Daten laden
+
+Die Daten stammen von einer kaggle Competition. Es gibt einen train und einen test Datensatz.
+
+Es geht darum, Menschen als Raucher oder Nicht-Raucher anhand von verschiedenen biologischen Signalen und Eigenschaften zu klassifizieren. Dabei soll die Klassifikation aber nicht hart sein, also nur aussagen ob man Raucher ist oder nicht, sondern es soll eine weiche Klassifikation sein, die angibt, mit welcher Wahrscheinlichkeit jemand aufgrund der vorliegenden Daten Raucher ist. 
+
+```{r include=FALSE}
+path_test <- "C:/Users/Emilia Braun/Downloads/APro/test.csv"
+path_train <- "C:/Users/Emilia Braun/Downloads/APro/train.csv"
+```
+
+```{r message=FALSE, warning=FALSE}
+
+d_train <- read_csv(path_train)
+d_test <- read_csv(path_test)
+
+```
+
+Schauen wir uns die Daten einmal an. 
+Der Datensatz besteht aus 24 Variablen, wovon eine die ID-Spalte ist und eine die vorzusagende Variable `smoking`.
+```{r}
+d_train
+```
+
+
+Der Train Datensatz wird nochmal in train und test Daten gesplittet. Davor werden einige Variablen für einfacheres Handling noch umbenannt und die AV wird als Faktorvariable angelegt.
+```{r}
+d_train <-
+  d_train |> 
+  mutate(weight = `weight(kg)`,
+         waist = `waist(cm)`,
+         height = `height(cm)`,
+         eyesight_left = `eyesight(left)`,
+         eyesight_right = `eyesight(right)`,
+         hearing_left = `hearing(left)`,
+         hearing_right = `hearing(right)`,
+         dental_caries = `dental caries`) |> 
+  dplyr::select(-`weight(kg)`, -`height(cm)`, -`eyesight(left)`, -`eyesight(right)`, -`hearing(left)`, -`hearing(right)`, - `dental caries`, -`waist(cm)`)
+
+d_test <-
+  d_test |> 
+  mutate(weight = `weight(kg)`,
+         waist = `waist(cm)`,
+         height = `height(cm)`,
+         eyesight_left = `eyesight(left)`,
+         eyesight_right = `eyesight(right)`,
+         hearing_left = `hearing(left)`,
+         hearing_right = `hearing(right)`,
+         dental_caries = `dental caries`) |> 
+  dplyr::select(-`weight(kg)`, - `height(cm)`, -`eyesight(left)`, -`eyesight(right)`, -`hearing(left)`, -`hearing(right)`, - `dental caries`, -`waist(cm)`)
+
+colnames(d_test) <- gsub(" ", "_", colnames(d_test))
+
+d_trainf <-
+  d_train |> 
+  mutate(smokingf = factor(smoking)) |> 
+  dplyr::select(-smoking)
+
+colnames(d_trainf) <- gsub(" ", "_", colnames(d_trainf))
+
+d_split <- initial_split(d_trainf, prop = .8, strata = smokingf)
+train <- training(d_split)
+test <- testing(d_split)
+
+
+```
+
+## 3. Überblick über die Daten verschaffen
+
+### 3.1 Überprüfen
+
+```{r}
+sum(is.na(d_trainf))
+
+visdat::vis_dat(d_trainf, warn_large_data = FALSE)
+
+```
+Im Datensatz gibt es keine fehlenden Werte.
+Bis auf die AV liegen nur nummerische Variablen vor.
+
+###  3.2 Korrelationen berechnen
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+s_cor <-
+  d_train |>
+  dplyr::select(-id) |> 
+  correlate() |> 
+  shave()
+
+s_cor
+
+s_cor2 <-
+  d_train |> 
+  dplyr::select(-id)
+
+corr_matrix <- cor(s_cor2)
+corr_melted <- melt(corr_matrix)
+
+ggplot(corr_melted, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile() +
+  scale_fill_gradient2(low="blue", mid="white", high="red", midpoint=0) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title="Korrelations-Heatmap für accidents")
+```
+### 3.3 Anteile der Faktorstufen der AV betrachten
+```{r}
+d_train |> 
+  count(smoking == 1) |> 
+  mutate(Anteil = n/sum(n))
+```
+--> Die AV scheint einigermaßen gleichverteilt zu sein. 
+
+### 3.4 Verteilung einiger Variablen
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+# Funktion zur Erstellung eines Histogramms mit Facettierung
+create_histogram_plot <- function(data, variable) {
+  ggplot(data, aes(x = !!sym(variable))) +
+    geom_histogram() +
+    labs(x = variable, y = "Häufigkeit") +
+    theme(
+    text = element_text(color = "darkblue"),  # Ändere die Farbe des Texts
+    panel.background = element_rect(fill = "lightgray"),  # Hintergrundfarbe des Plots
+    panel.grid.major = element_line(color = "white"),  # Farbe der Hauptgitterlinien
+    panel.grid.minor = element_line(color = "lightblue"),  # Farbe der Nebengitterlinien
+    strip.background = element_rect(fill = "cyan"),  # Hintergrundfarbe der Facettenüberschriften
+    strip.text = element_text(color = "black"),  # Farbe des Texts in den Facettenüberschriften
+    axis.title = element_text(color = "purple"),  # Farbe der Achsentitel
+    axis.text = element_text(color = "black"),  # Farbe des Achsentexts
+    axis.line = element_line(color = "blue"),  # Farbe der Achsenlinien
+    panel.border = element_rect(color = "darkgray", fill = NA),  # Farbe der Panelgrenzen
+    plot.background = element_rect(fill = "lightyellow")  # Hintergrundfarbe des gesamten Plots
+  ) +
+    facet_wrap(~ ., scales = "free")
+}
+
+# Liste der Variablen, für die Plots erstellt werden sollen
+variables_to_plot <- c("smoking", "age", "height", "weight", "triglyceride", "hemoglobin")
+
+# Erstelle die Plots für jede Variable
+plots_list <- map(variables_to_plot, ~ create_histogram_plot(data = d_train, variable = .x))
+
+# Kombiniere die Plots in einem Raster
+plot_grid(plotlist = plots_list, ncol = 3)
+
+```
+Die Variable `smoking` ist einigermaßen gleichverteilt, was für die Klassifikation natürlich sinnvoll ist, jedoch vielleicht kein gutes Bild der gesamten Population. In Deutschland liegt der Anteil an regelmäßig Rauchenden bei ca. 25 % (WHO, 2025). 
+
+Die Variable `age` ist einigermaßen erwartungsmäßig verteilt, wobei es einen erstaunlich hohen Anteil an 40 Jährigen gibt.
+
+Die Variablen `heigth` und `weight` sind beide wie zu erwarten normalverteilt.
+
+`triglyceride`, welche im medizinischen Bereich auch im Rahmen der Blutanalyse gemessen werden und zusammen mit Cholosterol zur Bestimmung von Fettwechselstörung notwendig sind, liegen bei einem Erwachsenen zwischen 40 - 240 mg/dl (natürlich auch abhängig von Alter und Geschlecht) (Rassow & Netzker, 2016). Deshalb macht die Verteilung der Werte auch Sinn so wie dargestellt.
+
+`hemoglobin` ist Teil der roten Blutkörperchen und ein Protein, in dessen Mitte ein Eisenatom liegt, welches Sauerstoff anlagern kann. Typische Werte liegen zwischen 12 und 19 g/dl (natürlich auch wieder abhängig von Alter und Geschlecht) (DRK, 2021), weshalb auch hier die Verteilung wieder sinnvoll erscheint.
+
+
+
+### 3.5 Die Verteilung einiger Variablen nach Raucherstatus
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+# Plot für Alter erstellen
+
+ggplot(d_trainf, aes(x = age, fill = smokingf)) +
+  geom_bar(position = "dodge", width = 4)  +
+  labs(title = "Häufigkeit von Alter nach Raucherstatus",
+       x = "Alter",
+       y = "Häufigkeit",
+       fill = "Raucher")  +
+  scale_fill_tableau("Nuriel Stone")
+
+```
+Der größte Anteil in beiden Gruppen scheint bei 40 Jahren zu sein. Bei den Rauchern scheint es aber nochmal einen beachtlichen Anteil an 60 Jährigen zu geben im Vergleich zu den Nicht-Rauchern.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+# Plot für Gewicht erstellen
+
+ggplot(d_trainf, aes(x = weight, fill = smokingf)) +
+  geom_bar(position = "dodge", width = 4)  +
+  labs(title = "Häufigkeit von Gewicht nach Raucherstatus",
+       x = "Gewicht",
+       y = "Häufigkeit",
+       fill = "Raucher") +
+  scale_fill_tableau("Nuriel Stone")
+
+```
+Die Nicht-Raucher haben bis 65 kg den höheren Anteil an der Verteilung, darüber gibt es mehr Raucher als Nicht-Raucher.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+# Plot für Größe erstellen
+
+ggplot(d_trainf, aes(x = height, fill = smokingf)) +
+  geom_bar(position = "dodge", width = 4)  +
+  labs(title = "Häufigkeit von Größe nach Raucherstatus",
+       x = "Größe",
+       y = "Häufigkeit",
+       fill = "Raucher") +
+  scale_fill_tableau("Nuriel Stone")
+
+```
+Es gibt sehr viel mehr kleinere Nicht-Raucher als kleine Raucher (klein: < 160 cm). Andersherum gibt es viel mehr große Raucher (groß: > 170 cm) als große Nicht-Raucher. Interessant wäre hierbei noch zu wissen, wie die Geschlechterverteilung aussieht, denn falls es mehr männliche als weibliche Raucher geben würde, dann macht es auch Sinn, dass es mehr große Raucher gibt. Leider gibt es dazu keine Daten in dem Datensatz.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+
+# Plot für Karies erstellen
+
+ggplot(d_trainf, aes(x = dental_caries, fill = smokingf)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Häufigkeit von Karies nach Raucherstatus",
+       x = "Karies",
+       y = "Häufigkeit",
+       fill = "Raucher") +
+  scale_fill_tableau("Nuriel Stone")
+
+```
+Insgesamt gibt es viel weniger Menschen mit Karies, wobei es etwas mehr Raucher als Nicht-Raucher sind.
+
+### 3.5 Boxplot
+
+Hier waren einmal typische Merkmalen der Beobachtungsfälle interessant als auch vereinzelte Daten zu biochemischen Signalen. 
+
+```{r}
+ggplot(d_trainf, aes(x = smokingf, y = height, fill = smokingf)) +
+  geom_boxplot() +
+  labs(title = "Boxplot der Größe nach Raucherstatus", x = "Raucherstatus", y = "Größe") +
+  scale_fill_tableau("Nuriel Stone")
+
+
+d_trainf |> 
+  group_by(smokingf) |> 
+  summarise(mean(height))
+```
+
+Anscheinend sind Raucher (mean = 169.74 cm) im Durchschnitt etwas größer als Nicht-Raucher (mean = 161.79 cm). Zudem scheinen Nicht-Raucher breiter gestreut zu sein als Raucher. Die Verteilung zur Größer der Nicht-Raucher könnte möglicherweise auch nicht ganz normalverteilt sein. Die 
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(d_trainf, aes(x = smokingf, y = weight, fill = smokingf)) +
+  geom_boxplot() +
+  labs(title = "Boxplot des Gewichts nach Raucherstatus", x = "Raucherstatus", y = "Gewicht") +
+  scale_fill_tableau("Nuriel Stone")
+
+d_trainf |> 
+  group_by(smokingf) |> 
+  summarise(mean(weight))
+```
+Nicht-Raucher scheinen im Durchschnitt mit 63.24 kg etwas leichter zu sein als die Raucher mit 72.16 kg. Die Nicht-Raucher haben mehr Ausreißer nach oben hin, während es bei den Rauchern sowohl Ausreißer nach unten als nach oben gibt. Beide Gruppen scheinen nicht ganz normalverteilt zu sein. 
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(d_trainf, aes(x = smokingf, y = age, fill = smokingf)) +
+  geom_boxplot() +
+  labs(title = "Boxplot des Alters nach Raucherstatus", x = "Raucherstatus", y = "Alter") +
+  scale_fill_tableau("Nuriel Stone")
+
+d_trainf |> 
+  group_by(smokingf) |> 
+  summarise(mean(age))
+
+d_trainf |> 
+  group_by(smokingf) |> 
+  count(age < 20)
+```
+Raucher liegen mit 41.5 Jahren durschnittlich unter den Nicht-Rauchern mit 46.5 Jahren. Es gibt in beiden Gruppen keine Personen, die unter 20 Jahren sind, also wurden wohl nur Daten zu Personen >= 20 gesammelt. Beide Gruppen scheinen nicht ganz normalverteilt zu sein.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(d_trainf, aes(x = smokingf, y = Cholesterol, fill = smokingf)) +
+  geom_boxplot() +
+  labs(title = "Boxplot Cholersterol nach Raucherstatus", x = "Raucherstatus", y = "Cholesterol") +
+  scale_fill_tableau("Nuriel Stone")
+
+d_trainf |> 
+  group_by(smokingf) |> 
+  summarise(mean(Cholesterol))
+```
+Die Cholosterol-Spiegel sind für beide Gruppen ähnlich. Auch sonst gibt es wenig Auffäligkeiten. 
+
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggplot(d_trainf, aes(x = smokingf, y = hemoglobin, fill = smokingf)) +
+  geom_boxplot() +
+  labs(title = "Boxplot des Hemoglobins nach Raucherstatus", x = "Raucherstatus", y = "Hemoglobin") +
+  scale_fill_tableau("Nuriel Stone")
+
+d_trainf |> 
+  group_by(smokingf) |> 
+  summarise(mean(hemoglobin))
+```
+Der Hämoglobin Wert für die Raucher liegt knapp über 15, während er bei den Nicht-Rauchern knapp unter 15 liegt. Bei den Nicht-Raucher gehen die Ausreißer jedoch auch unter den Wert 7.5, während es bei den Rauchern etwas mehr Ausreißer nach oben hin gibt bzw diese haben höhere Werte als die Ausreißer der Nicht-Raucher. 
+
+## 4. Effekte identifizieren
+
+Um zu überprüfen, welche Variablen einen Einfluss auf die AV haben, wurde im Folgenden ein stan_glm aufgestellt und anschließend das rope berechnet.
+
+```{r}
+m1 <- stan_glm(smoking ~ ., data = d_train, seed = 42, refresh = 0)
+
+parameters(m1)
+
+rope(m1)
+
+plot(rope(m1))
+
+vif(m1)
+```
+Anscheinend haben nur 2 Variablen wirklich Einfluss auf die AV, und zwar `hemoglobin` und `dental_caries`. 
+Es wurde aber als Warnung ausgegeben, dass es eine mögliche Multikollinearität zwischen `relaxation` und `sysolic`, `HDL` und `Cholosterol`, `HDL` und `triglyceride` und `waist`und `weight`gibt. Dadurch könnten die Ergebnisse verfälscht werden und der Anteil, der sich im rope befindet, verschieben. Deshalb ist es schwierig zu sagen, ob noch andere Variablen einen identifizierten Effekt auf die AV haben.
+
+Der Varianzinflationsfaktor (VIF) wird verwendet, um Multikollinearität zwischen den Prädiktoren in einem Regressionsmodell zu quantifizieren. Die betroffenen Variablen scheinen alle ein höheren Faktor zu haben als die anderen. 
+
+Es macht aber Sinn, dass die Variablen-Pärchen eine Korrelation aufweisen, denn zum Beispiel stehen die Variablen `relaxation` und `sysolic` beide im Zusammenhang mit dem Blutdruck, genauso wie es bei dem Taillenumfang (waist) und Gewicht auch Sinn macht, dass sie miteinander korrelieren. 
+
+
+
+## 5. Workflows
+
+### 5.1 Rezept erstellen
+Verschiedene Rezepte mit unterschiedlicher Vorverarbeitung, um am Ende das beste zu finden.
+
+Aufgrund von hohen Rechenzeiten habe ich mich dafür entschieden, mein test-sample aus dem Split-Objekt zu verwenden.
+```{r}
+# Rezept basic
+rec1 <-
+  recipe(smokingf ~ ., data = test) %>% 
+  update_role(id, new_role = "id variable" )
+
+
+tidy(rec1)
+d_baked1 <- prep(rec1) |> bake(new_data = NULL)
+sum(is.na(d_baked1))
+
+
+# Basic Rezept mit Yeo Johnson & step normalize
+rec2 <-
+  recipe(smokingf ~ ., data = test) %>% 
+  update_role(id, new_role = "id variable") |> 
+  step_normalize(all_numeric_predictors()) |> 
+  step_YeoJohnson(all_double_predictors())
+
+tidy(rec2)
+d_baked2 <- prep(rec2) |> bake(new_data = NULL)
+sum(is.na(d_baked2))
+
+
+
+
+# Rezept 3
+rec3 <-
+  recipe(smokingf ~ height + weight + hemoglobin + triglyceride + Gtp + serum_creatinine + HDL + waist + age, data = test) %>%
+  step_normalize(all_numeric_predictors())
+
+tidy(rec3)
+d_baked3 <- prep(rec3) |> bake(new_data = NULL)
+sum(is.na(d_baked3))
+
+
+# Rezept 4
+rec4 <-
+  recipe(smokingf ~ height + weight + hemoglobin + triglyceride + Gtp + serum_creatinine + HDL + waist + age, data = test) %>%
+  step_normalize(all_numeric_predictors()) |> 
+  step_pca(all_numeric_predictors(), num_comp = 3) 
+
+tidy(rec4)
+d_baked4 <- prep(rec4) |> bake(new_data = NULL)
+sum(is.na(d_baked4))
+
+# Rezept 5 auf Basis des stan_glm
+rec5 <-
+  recipe(smokingf ~ dental_caries + hemoglobin, data = test) %>%
+  step_scale(all_numeric_predictors()) |> 
+  step_pca(all_numeric_predictors(), num_comp = 3) 
+
+tidy(rec5)
+d_baked5 <- prep(rec5) |> bake(new_data = NULL)
+sum(is.na(d_baked5))
+
+#Rezept 6 mit yeo Johnson und z-skalieren
+rec6 <-
+  recipe(smokingf ~ ., data = test) %>% 
+  update_role(id, new_role = "id variable") |> 
+  step_normalize(all_numeric_predictors()) |> 
+  step_scale(all_numeric_predictors()) |> 
+  step_YeoJohnson(all_double_predictors())
+
+tidy(rec6)
+d_baked6 <- prep(rec6) |> bake(new_data = NULL)
+sum(is.na(d_baked6))
+
+
+```
+
+
+### 5.2 Kreuzvalidierung
+```{r}
+set.seed(42)
+cv_scheme <- vfold_cv(test,
+  v = 5, 
+  repeats = 2,
+  strata = smokingf)
+```
+
+### 5.3 Modelle
+```{r}
+
+# Baum
+mod_tree <-
+  decision_tree(cost_complexity = tune(),
+  tree_depth = tune(),
+  mode = "classification")
+
+# Random Forest
+mod_rf <-
+  rand_forest(mtry = tune(),
+  min_n = tune(),
+  trees = 1000,
+  mode = "classification") %>% 
+  set_engine("ranger", num.threads = 4)
+
+# XGBoost
+
+mod_boost <- boost_tree(
+  mode = "classification",
+  engine = "xgboost",
+  mtry = tune(),
+  trees = 100,
+  min_n = 10
+)
+
+
+# logistische Regression
+mod_logreg <- logistic_reg(
+              mode = "classification",
+              engine = "glm",
+              penalty = 1)
+
+
+# knn
+mod_knn <-
+  nearest_neighbor(
+    mode = "classification",
+    engine = "kknn",
+    neighbors = tune()
+  ) 
+
+```
+
+### 5.4 Zusammenfassen von Modellen und Rezepten
+```{r eval=FALSE}
+preproc1 <- list(rec1 = rec1)
+
+models1 <- list(tree1 = mod_tree, rf1 = mod_rf, boost1 = mod_boost, lg1 = mod_logreg, knn1 = mod_knn)
+
+models2 <- list(tree1 = mod_tree, boost1 = mod_boost, lg1 = mod_logreg, knn1 = mod_knn)
+
+# mit Rezept 1
+all_workflows1 <- workflow_set(preproc1, models2)
+
+# mit Rezept 2
+preproc2 <- list(rec2 = rec2)
+all_workflows2 <- workflow_set(preproc2, models2)
+
+# mit Rezept 3
+preproc3 <- list(rec3 = rec3)
+all_workflows3 <- workflow_set(preproc3, models2)
+
+# mit Rezept 4
+preproc4 <- list(rec4 = rec4)
+all_workflows4 <- workflow_set(preproc4, models2)
+
+# mit Rezept 5
+preproc5 <- list(rec5 = rec5)
+all_workflows5 <- workflow_set(preproc5, models2)
+
+# mit Rezept 6
+preproc6 <- list(rec6 = rec6)
+all_workflows6 <- workflow_set(preproc6, models2)
+```
+
+```{r}
+workflow6 <-
+  workflow() |> 
+  add_model(mod_boost) |> 
+  add_recipe(rec6)
+```
+### 5.5 Tuning
+```{r eval=FALSE}
+# mit Rezept 2
+set.seed(42)
+tic()
+smokingset2 <-
+  all_workflows2 %>% 
+  workflow_map(
+  resamples = cv_scheme,
+  grid = 10,
+  verbose = TRUE)
+toc()
+
+# mit Rezept 3
+set.seed(42)
+tic()
+smokingset3 <-
+  all_workflows3 %>% 
+  workflow_map(
+  resamples = cv_scheme,
+  grid = 10,
+  verbose = TRUE)
+toc()
+
+# mit Rezept 4
+set.seed(42)
+tic()
+smokingset4 <-
+  all_workflows4 %>% 
+  workflow_map(
+  resamples = cv_scheme,
+  grid = 10,
+  verbose = TRUE)
+toc()
+
+# mit Rezept 5
+set.seed(42)
+tic()
+smokingset5 <-
+  all_workflows5 %>% 
+  workflow_map(
+  resamples = cv_scheme,
+  grid = 10,
+  verbose = TRUE)
+toc()
+
+# mit Rezept 6
+set.seed(42)
+tic()
+smokingset6 <-
+  all_workflows6 %>% 
+  workflow_map(
+  resamples = cv_scheme,
+  grid = 10,
+  verbose = TRUE)
+toc()
+```
+Bestes Workflowset
+```{r}
+# mit Rezept 6
+set.seed(42)
+tic()
+tune6 <-
+  tune_grid(object = workflow6,
+            resamples = cv_scheme,
+            grid = 10,
+            control = control_grid(save_workflow = TRUE))
+toc()
+```
+
+### 5.6 Modellvergelich
+```{r eval=FALSE}
+# mit Rezept 2
+tune::autoplot(smokingset2) +
+  theme(legend.position = "bottom")
+
+smokingset2 %>% 
+  collect_metrics(.metric = "roc_auc") %>% 
+  arrange(mean) 
+
+# mit Rezept 3
+tune::autoplot(smokingset3) +
+  theme(legend.position = "bottom")
+
+smokingset3 %>% 
+  collect_metrics(.metric = "roc_auc") %>% 
+  arrange(mean) 
+
+# mit Rezept 4
+tune::autoplot(smokingset4) +
+  theme(legend.position = "bottom")
+
+smokingset4 %>% 
+  collect_metrics(.metric = "roc_auc") %>% 
+  arrange(mean) 
+
+# mit Rezept 5
+tune::autoplot(smokingset5) +
+  theme(legend.position = "bottom")
+
+smokingset5 %>% 
+  collect_metrics(.metric = "roc_auc") %>% 
+  arrange(mean) 
+
+# mit Rezept 6
+tune::autoplot(smokingset6) +
+  theme(legend.position = "bottom")
+
+smokingset6 %>% 
+  collect_metrics() %>% 
+  arrange(mean) 
+```
+Bestes Workflowset:
+```{r}
+# mit Rezept 6
+tune6 |> collect_metrics()
+autoplot(tune6)
+```
+
+
+### 5.7 Bestes Model wählen
+
+Der beste workflow scheint eine Kombination aus einem xgBoost-Modell und dem 6. Rezept zu sein. Die accuracy liegt bei ca. 0.771 und der roc_auc wert bei 0.856.
+```{r}
+best_model6 <-
+  fit_best(tune6)
+```
+
+
+
+## 6. Ergebnisse
+```{r}
+final_preds6 <- 
+  best_model6 %>% 
+  predict(new_data = d_test, type = "prob") %>% 
+  bind_cols(d_test)
+
+submission <-
+  final_preds6 |> 
+  mutate(pred_prob = .pred_1,
+         pred_class = round(.pred_1, 0)) |> 
+  dplyr::select(id, pred_class, pred_prob)
+
+```
+Einreichung
+Da die Daten Teil einer kaggle Competition sind, werden sie hier auch noch kurz abgespeichert, was für die eigentlich Analyse aber nicht relevant ist. 
+```{r eval=FALSE}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+submission_df <-
+  final_preds6 %>% 
+  dplyr::select(id, pred = .pred_1)
+
+write_csv(submission_df, file = "submission_ecmb.csv")
+```
+
+### 6.1 ROC AUC-Kurve
+Anhand dem eigenen train-sample wird die roc-auc Kurve dargestellt.
+```{r}
+probe <- 
+  best_model6 %>% 
+  predict(new_data = train, type = "prob")
+
+
+train2 <- train |> 
+  mutate(smoking = as.numeric(smokingf))
+rocobj <- roc(train2$smoking, probe$.pred_1)
+
+
+#create ROC plot
+ggroc(rocobj)
+
+#define object to plot and calculate AUC
+rocobj <- roc(train2$smoking, probe$.pred_1)
+auc <- round(auc(train2$smoking, probe$.pred_1),4)
+
+#create ROC plot
+ggroc(rocobj, colour = 'cyan', size = 2) +
+  ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) +
+  scale_fill_tableau("Nuriel Stone")
+  
+```
+Das Modell ist in der Lage, die positiven Fälle von den negativen Fällen mit einer Wahrscheinlichkeit von ca. 86 % zu unterscheiden.
+
+Es ist wichtig zu beachten, dass der ROC AUC-Wert nur ein Maß für die Fähigkeit eines Modells ist, die positiven Fälle von den negativen Fällen zu unterscheiden. Er sagt nichts darüber aus, wie gut das Modell die tatsächlichen Werte der positiven Fälle vorhersagt.
+
+### 6.2 Confusionsmatrix
+```{r}
+probe2 <-
+  probe |> 
+  bind_cols(train2)
+
+probe2 <-
+  probe2 |> 
+  mutate(pred1 = round(.pred_1)) |> 
+  mutate(predf = factor(pred1))
+
+confusion_matrix <- confusionMatrix(probe2$smokingf, probe2$predf)
+print(confusion_matrix)
+```
+Die Sensitivität ist ein Maß dafür, wie gut das Modell positive Fälle (Nicht-Raucher) erkennt. In diesem Fall ist die Sensitivität von 0,8271 gut. Das Modell erkennt 82,71 % der positiven Fälle korrekt.
+
+Die Spezifität ist ein Maß dafür, wie gut das Modell negative Fälle (Raucher) erkennt. In diesem Fall ist die Spezifität von 0,7194 auch gut. Das Modell erkennt 71,94 % der negativen Fälle korrekt.
+
+## 7. Fazit
+Es sollten innerhalb dieser Analyse zwei Fragen bzw. Aufgaben bewältigit werden. Zum einem sollten die mögliche Effekte auf den Raucherstatus identifiziert werden, zum anderen sollten Beobachtungsfälle aufgrund ihrer biologischen Daten nach ihrem Raucherstatus klassifiziert werden bzw. es sollte die Wahrscheinlichkeit, ob jemand Raucher ist, angegeben werden. 
+
+Es wurden zwei Effekte auf die AV `smoking` identifiziert, einmal `hemoglobin` und `dental_caries`. Es kann jedoch nicht mit Sicherheit gesagt werden, ob es nicht noch mehr geben könnte, denn im Modell befinden sich Hinweise auf eine mögliche Multikollinerität. 
+
+Das Klassifikations-Modell ist in der Lage, die positiven Fälle von den negativen Fällen mit einer Wahrscheinlichkeit von ca. 86 % zu unterscheiden.
+
+
+Im Allgemeinen kann man sagen:
+Die Klassifikation des Raucherstatus auf der Grundlage biologischer Signale hat einige Vorteile gegenüber der Klassifikation auf der Grundlage von Selbstberichten. Selbstberichte sind anfällig für Verzerrungen, z. B. soziale Erwünschtheit oder Erinnerungsfehler. Biologische Signale hingegen sind objektive Messungen, die nicht von den subjektiven Wahrnehmungen der Person abhängen.
+
+Es gibt jedoch auch einige Herausforderungen bei der Klassifikation des Raucherstatus auf der Grundlage biologischer Signale. Zum einen sind die biologischen Signale von Rauchern und Nichtrauchern nicht immer eindeutig voneinander zu unterscheiden. Zum anderen können die biologischen Signale durch andere Faktoren beeinflusst werden, z. B. durch die Ernährung oder die Einnahme von Medikamenten.
+
+## 8. Quellen
+Raucheranteil Deutschland: WHO. (31. August, 2015). Anteil der Raucher in Deutschland nach Geschlecht in den Jahren 2000 bis 2025 [Graph]. In Statista. Zugriff am 12. Januar 2024, von https://de.statista.com/statistik/daten/studie/596512/umfrage/verbreitung-des-rauchens-in-deutschland-nach-geschlecht/ 
+
+Triglyceride-Werte: 
+Rassow, J., & Netzker, D. (2016). Duale Reihe Biochemie, Thieme. Edited by J. Rassow et al. Stuttgart: Georg Thieme Verlag. 
+
+Hämoglobin-Werte: https://www.blutspende.de/magazin/von-a-bis-0/was-ist-haemoglobin-und-warum-ist-es-wichtig 
+
+
+
