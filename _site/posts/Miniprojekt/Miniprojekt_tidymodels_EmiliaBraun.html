@@ -9,7 +9,7 @@
 <meta name="author" content="Emilia Braun">
 <meta name="dcterms.date" content="2023-11-28">
 
-<title>ecmbblog - Miniprojekt tidymodels</title>
+<title>ecmbblog - Klassifikation von Hate Speech</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -139,7 +139,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Miniprojekt tidymodels</h1>
+      <h1 class="title">Klassifikation von Hate Speech</h1>
                                 <div class="quarto-categories">
                 <div class="quarto-category">Textanalyse</div>
                 <div class="quarto-category">Tidymodels</div>
@@ -252,6 +252,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="textlänge-in-abhängigkeit-von-c2-kategorie" class="level2">
 <h2 class="anchored" data-anchor-id="textlänge-in-abhängigkeit-von-c2-kategorie">Textlänge in Abhängigkeit von c2 Kategorie</h2>
 <div class="cell">
+<details>
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>train1 <span class="ot">&lt;-</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  germeval_train <span class="sc">|&gt;</span> </span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">text_length =</span> <span class="fu">str_length</span>(text))</span>
@@ -263,6 +265,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Textlänge"</span>,</span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">color =</span> <span class="st">"c2"</span>) <span class="sc">+</span></span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_tableau</span>(<span class="st">"Nuriel Stone"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="Miniprojekt_tidymodels_EmiliaBraun_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -271,9 +274,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="histogramm-der-textlänge" class="level2">
 <h2 class="anchored" data-anchor-id="histogramm-der-textlänge">Histogramm der Textlänge</h2>
 <div class="cell">
+<details>
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(train1, <span class="fu">aes</span>(<span class="at">x =</span> text_length)) <span class="sc">+</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">5</span>, <span class="at">fill =</span> <span class="st">"#94d0c0"</span>, <span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Histogramm der Textlängen"</span>, <span class="at">x =</span> <span class="st">"Textlänge"</span>, <span class="at">y =</span> <span class="st">"Häufigkeit"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="Miniprojekt_tidymodels_EmiliaBraun_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -282,10 +288,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="boxplot-für-verschiedene-kateforien" class="level2">
 <h2 class="anchored" data-anchor-id="boxplot-für-verschiedene-kateforien">Boxplot für verschiedene Kateforien</h2>
 <div class="cell">
+<details>
+<summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(train1, <span class="fu">aes</span>(<span class="at">x =</span> c1, <span class="at">y =</span> text_length, <span class="at">fill =</span> c2)) <span class="sc">+</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Boxplot der Textlängen nach c1"</span>, <span class="at">x =</span> <span class="st">"c1"</span>, <span class="at">y =</span> <span class="st">"Textlänge"</span>, <span class="at">fill =</span> <span class="st">"c2"</span>)<span class="sc">+</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_tableau</span>(<span class="st">"Nuriel Stone"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="Miniprojekt_tidymodels_EmiliaBraun_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -414,7 +423,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> germeval_train)</span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>20.32 sec elapsed</code></pre>
+<pre><code>35.39 sec elapsed</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">beep</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -428,7 +437,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> germeval_train)</span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>89.57 sec elapsed</code></pre>
+<pre><code>111.2 sec elapsed</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">beep</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -444,7 +453,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(fit1, <span class="at">new_data =</span> germeval_test)</span>
 <span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>13.63 sec elapsed</code></pre>
+<pre><code>22.39 sec elapsed</code></pre>
 </div>
 </div>
 </section>
@@ -456,7 +465,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(fit2, <span class="at">new_data =</span> germeval_test)</span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">toc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>16.72 sec elapsed</code></pre>
+<pre><code>22.19 sec elapsed</code></pre>
 </div>
 </div>
 <div class="cell">

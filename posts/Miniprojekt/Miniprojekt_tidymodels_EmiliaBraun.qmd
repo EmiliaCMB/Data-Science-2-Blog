@@ -1,7 +1,8 @@
 ---
-title: "Miniprojekt tidymodels"
+title: "Klassifikation von Hate Speech"
 author: "Emilia Braun"
 date: "2023-11-28"
+image: "hatespeech.jpg"
 categories: [Textanalyse, Tidymodels, Klassifikation]
 ---
 
@@ -42,6 +43,8 @@ schimpfwoerter$value <- 1
 ## Textlänge in Abhängigkeit von c2 Kategorie
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
 train1 <-
   germeval_train |> 
   mutate(text_length = str_length(text))
@@ -58,6 +61,8 @@ ggplot(train1, aes(x = c1, y = text_length, color = c2)) +
 ## Histogramm der Textlänge
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
 ggplot(train1, aes(x = text_length)) +
   geom_histogram(binwidth = 5, fill = "#94d0c0", color = "white") +
   labs(title = "Histogramm der Textlängen", x = "Textlänge", y = "Häufigkeit")
@@ -67,6 +72,8 @@ ggplot(train1, aes(x = text_length)) +
 ## Boxplot für verschiedene Kateforien
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
 ggplot(train1, aes(x = c1, y = text_length, fill = c2)) +
   geom_boxplot() +
   labs(title = "Boxplot der Textlängen nach c1", x = "c1", y = "Textlänge", fill = "c2")+

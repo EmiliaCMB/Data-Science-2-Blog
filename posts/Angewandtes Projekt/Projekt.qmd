@@ -1,5 +1,5 @@
 ---
-title: "Projekt"
+title: "Raucherstatus Klassifikation"
 author: "Emilia Braun"
 date: "2024-01-12"
 image: "raucher.jpeg"
@@ -133,7 +133,7 @@ Im Datensatz gibt es keine fehlenden Werte.
 Bis auf die AV liegen nur nummerische Variablen vor.
 
 ###  3.2 Korrelationen berechnen
-```{r}
+```{r message=FALSE}
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -168,7 +168,7 @@ d_train |>
 --> Die AV scheint einigermaßen gleichverteilt zu sein. 
 
 ### 3.4 Verteilung einiger Variablen
-```{r}
+```{r message=FALSE}
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -216,7 +216,7 @@ Die Variablen `heigth` und `weight` sind beide wie zu erwarten normalverteilt.
 
 
 ### 3.5 Die Verteilung einiger Variablen nach Raucherstatus
-```{r}
+```{r message=FALSE}
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -233,7 +233,7 @@ ggplot(d_trainf, aes(x = age, fill = smokingf)) +
 ```
 Der größte Anteil in beiden Gruppen scheint bei 40 Jahren zu sein. Bei den Rauchern scheint es aber nochmal einen beachtlichen Anteil an 60 Jährigen zu geben im Vergleich zu den Nicht-Rauchern.
 
-```{r}
+```{r message=FALSE}
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -250,7 +250,7 @@ ggplot(d_trainf, aes(x = weight, fill = smokingf)) +
 ```
 Die Nicht-Raucher haben bis 65 kg den höheren Anteil an der Verteilung, darüber gibt es mehr Raucher als Nicht-Raucher.
 
-```{r}
+```{r message=FALSE}
 #| code-fold: true
 #| code-summary: "Show the code"
 
@@ -290,6 +290,8 @@ Insgesamt gibt es viel weniger Menschen mit Karies, wobei es etwas mehr Raucher 
 Hier waren einmal typische Merkmalen der Beobachtungsfälle interessant als auch vereinzelte Daten zu biochemischen Signalen. 
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
 ggplot(d_trainf, aes(x = smokingf, y = height, fill = smokingf)) +
   geom_boxplot() +
   labs(title = "Boxplot der Größe nach Raucherstatus", x = "Raucherstatus", y = "Größe") +
@@ -527,6 +529,8 @@ mod_knn <-
 
 ### 5.4 Zusammenfassen von Modellen und Rezepten
 ```{r eval=FALSE}
+#| code-fold: true
+#| code-summary: "Show the code"
 preproc1 <- list(rec1 = rec1)
 
 models1 <- list(tree1 = mod_tree, rf1 = mod_rf, boost1 = mod_boost, lg1 = mod_logreg, knn1 = mod_knn)
@@ -565,6 +569,8 @@ workflow6 <-
 ```
 ### 5.5 Tuning
 ```{r eval=FALSE}
+#| code-fold: true
+#| code-summary: "Show the code"
 # mit Rezept 2
 set.seed(42)
 tic()
@@ -620,7 +626,7 @@ smokingset6 <-
   verbose = TRUE)
 toc()
 ```
-Bestes Workflowset
+Bester Workflow, dieser hat sich durch ausprobieren der Workflowsets ergeben. Aufgrund von Rechenzeitersparnis wird hier nur noch mit dem besten Workflow weitergearbeitet.
 ```{r}
 # mit Rezept 6
 set.seed(42)
@@ -635,6 +641,8 @@ toc()
 
 ### 5.6 Modellvergelich
 ```{r eval=FALSE}
+#| code-fold: true
+#| code-summary: "Show the code"
 # mit Rezept 2
 tune::autoplot(smokingset2) +
   theme(legend.position = "bottom")
@@ -707,18 +715,7 @@ submission <-
   dplyr::select(id, pred_class, pred_prob)
 
 ```
-Einreichung
-Da die Daten Teil einer kaggle Competition sind, werden sie hier auch noch kurz abgespeichert, was für die eigentlich Analyse aber nicht relevant ist. 
-```{r eval=FALSE}
-#| code-fold: true
-#| code-summary: "Show the code"
 
-submission_df <-
-  final_preds6 %>% 
-  dplyr::select(id, pred = .pred_1)
-
-write_csv(submission_df, file = "submission_ecmb.csv")
-```
 
 ### 6.1 ROC AUC-Kurve
 Anhand dem eigenen train-sample wird die roc-auc Kurve dargestellt.
@@ -733,15 +730,12 @@ train2 <- train |>
 rocobj <- roc(train2$smoking, probe$.pred_1)
 
 
-#create ROC plot
-ggroc(rocobj)
-
 #define object to plot and calculate AUC
 rocobj <- roc(train2$smoking, probe$.pred_1)
 auc <- round(auc(train2$smoking, probe$.pred_1),4)
 
 #create ROC plot
-ggroc(rocobj, colour = 'cyan', size = 2) +
+ggroc(rocobj, colour = 'cyan', size = 1) +
   ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) +
   scale_fill_tableau("Nuriel Stone")
   
