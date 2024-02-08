@@ -3,10 +3,12 @@ title: "Raucherstatus Klassifikation"
 author: "Emilia Braun"
 date: "2024-01-12"
 image: "raucher.jpeg"
+categories: [Tidymodels, Klassifikation, Gesundheit]
 format:
   html:
     embed-resources: true
 ---
+
 # Raucherstatus Klassifikation
 
 Anhand von verschiedenen biologischen Daten und Signalen soll in einer Soft Classification bestimmt werden, mit welcher Wahrscheinlichkeit eine Person Raucher ist.
@@ -15,18 +17,18 @@ Anhand von verschiedenen biologischen Daten und Signalen soll in einer Soft Clas
 
 Im Folgenden sollen sowohl neue Beobachtungsfälle auf ihre Wahrscheinlichkeit hin, Raucher zu sein, klassifiziert werden, als auch mögliche Effekte von biologischen Signalen auf den Raucherstatus identifiziert werden.
 
-Warum könnte eine Klassifikation des Raucherstatus interessieren? 
+Warum könnte eine Klassifikation des Raucherstatus interessieren?
 
-----------
-* Gesundheitswesen: Eine Klassifikation des Raucherstatus auf Basis von biologischen Signalen kann verwendet werden, um Menschen mit einem erhöhten Risiko für Raucherkrankheiten zu identifizieren. Dies kann dazu beitragen, diese Krankheiten zu verhindern oder zu behandeln.
-* Raucherentwöhnung: Eine Klassifikation des Raucherstatus auf Basis von biologischen Signalen kann verwendet werden, um die Wirksamkeit von Raucherentwöhnungsmaßnahmen zu bewerten. Dies kann dazu beitragen, die Entwicklung neuer und effektiverer Raucherentwöhnungsmaßnahmen zu unterstützen.
-* Marktforschung: Eine Klassifikation des Raucherstatus auf Basis von biologischen Signalen kann verwendet werden, um neue Produkte und Dienstleistungen für Raucher zu entwickeln. Dies kann dazu beitragen, die Raucherprävention und -entwöhnung zu unterstützen.
+------------------------------------------------------------------------
 
-
+-   Gesundheitswesen: Eine Klassifikation des Raucherstatus auf Basis von biologischen Signalen kann verwendet werden, um Menschen mit einem erhöhten Risiko für Raucherkrankheiten zu identifizieren. Dies kann dazu beitragen, diese Krankheiten zu verhindern oder zu behandeln.
+-   Raucherentwöhnung: Eine Klassifikation des Raucherstatus auf Basis von biologischen Signalen kann verwendet werden, um die Wirksamkeit von Raucherentwöhnungsmaßnahmen zu bewerten. Dies kann dazu beitragen, die Entwicklung neuer und effektiverer Raucherentwöhnungsmaßnahmen zu unterstützen.
+-   Marktforschung: Eine Klassifikation des Raucherstatus auf Basis von biologischen Signalen kann verwendet werden, um neue Produkte und Dienstleistungen für Raucher zu entwickeln. Dies kann dazu beitragen, die Raucherprävention und -entwöhnung zu unterstützen.
 
 ## 2. Vorbereitung
 
 ### 2.1 Pakete laden
+
 ```{r  message=FALSE, warning=FALSE}
 library(tidyverse)
 library(tidymodels)
@@ -56,7 +58,7 @@ library(pROC)
 
 Die Daten stammen von einer kaggle Competition. Es gibt einen train und einen test Datensatz.
 
-Es geht darum, Menschen als Raucher oder Nicht-Raucher anhand von verschiedenen biologischen Signalen und Eigenschaften zu klassifizieren. Dabei soll die Klassifikation aber nicht hart sein, also nur aussagen ob man Raucher ist oder nicht, sondern es soll eine weiche Klassifikation sein, die angibt, mit welcher Wahrscheinlichkeit jemand aufgrund der vorliegenden Daten Raucher ist. 
+Es geht darum, Menschen als Raucher oder Nicht-Raucher anhand von verschiedenen biologischen Signalen und Eigenschaften zu klassifizieren. Dabei soll die Klassifikation aber nicht hart sein, also nur aussagen ob man Raucher ist oder nicht, sondern es soll eine weiche Klassifikation sein, die angibt, mit welcher Wahrscheinlichkeit jemand aufgrund der vorliegenden Daten Raucher ist.
 
 ```{r include=FALSE}
 path_test <- "C:/Users/Emilia Braun/Downloads/APro/test.csv"
@@ -70,14 +72,14 @@ d_test <- read_csv(path_test)
 
 ```
 
-Schauen wir uns die Daten einmal an. 
-Der Datensatz besteht aus 24 Variablen, wovon eine die ID-Spalte ist und eine die vorzusagende Variable `smoking`.
+Schauen wir uns die Daten einmal an. Der Datensatz besteht aus 24 Variablen, wovon eine die ID-Spalte ist und eine die vorzusagende Variable `smoking`.
+
 ```{r}
 d_train
 ```
 
-
 Der Train Datensatz wird nochmal in train und test Daten gesplittet. Davor werden einige Variablen für einfacheres Handling noch umbenannt und die AV wird als Faktorvariable angelegt.
+
 ```{r}
 d_train <-
   d_train |> 
@@ -129,10 +131,11 @@ sum(is.na(d_trainf))
 visdat::vis_dat(d_trainf, warn_large_data = FALSE)
 
 ```
-Im Datensatz gibt es keine fehlenden Werte.
-Bis auf die AV liegen nur nummerische Variablen vor.
 
-###  3.2 Korrelationen berechnen
+Im Datensatz gibt es keine fehlenden Werte. Bis auf die AV liegen nur nummerische Variablen vor.
+
+### 3.2 Korrelationen berechnen
+
 ```{r message=FALSE}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -159,15 +162,19 @@ ggplot(corr_melted, aes(x=Var1, y=Var2, fill=value)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   labs(title="Korrelations-Heatmap für accidents")
 ```
+
 ### 3.3 Anteile der Faktorstufen der AV betrachten
+
 ```{r}
 d_train |> 
   count(smoking == 1) |> 
   mutate(Anteil = n/sum(n))
 ```
---> Die AV scheint einigermaßen gleichverteilt zu sein. 
+
+--\> Die AV scheint einigermaßen gleichverteilt zu sein.
 
 ### 3.4 Verteilung einiger Variablen
+
 ```{r message=FALSE}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -203,7 +210,8 @@ plots_list <- map(variables_to_plot, ~ create_histogram_plot(data = d_train, var
 plot_grid(plotlist = plots_list, ncol = 3)
 
 ```
-Die Variable `smoking` ist einigermaßen gleichverteilt, was für die Klassifikation natürlich sinnvoll ist, jedoch vielleicht kein gutes Bild der gesamten Population. In Deutschland liegt der Anteil an regelmäßig Rauchenden bei ca. 25 % (WHO, 2025). 
+
+Die Variable `smoking` ist einigermaßen gleichverteilt, was für die Klassifikation natürlich sinnvoll ist, jedoch vielleicht kein gutes Bild der gesamten Population. In Deutschland liegt der Anteil an regelmäßig Rauchenden bei ca. 25 % (WHO, 2025).
 
 Die Variable `age` ist einigermaßen erwartungsmäßig verteilt, wobei es einen erstaunlich hohen Anteil an 40 Jährigen gibt.
 
@@ -213,9 +221,8 @@ Die Variablen `heigth` und `weight` sind beide wie zu erwarten normalverteilt.
 
 `hemoglobin` ist Teil der roten Blutkörperchen und ein Protein, in dessen Mitte ein Eisenatom liegt, welches Sauerstoff anlagern kann. Typische Werte liegen zwischen 12 und 19 g/dl (natürlich auch wieder abhängig von Alter und Geschlecht) (DRK, 2021), weshalb auch hier die Verteilung wieder sinnvoll erscheint.
 
-
-
 ### 3.5 Die Verteilung einiger Variablen nach Raucherstatus
+
 ```{r message=FALSE}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -228,9 +235,11 @@ ggplot(d_trainf, aes(x = age, fill = smokingf)) +
        x = "Alter",
        y = "Häufigkeit",
        fill = "Raucher")  +
-  scale_fill_tableau("Nuriel Stone")
+  scale_fill_tableau("Nuriel Stone") +
+  theme_minimal()
 
 ```
+
 Der größte Anteil in beiden Gruppen scheint bei 40 Jahren zu sein. Bei den Rauchern scheint es aber nochmal einen beachtlichen Anteil an 60 Jährigen zu geben im Vergleich zu den Nicht-Rauchern.
 
 ```{r message=FALSE}
@@ -245,9 +254,11 @@ ggplot(d_trainf, aes(x = weight, fill = smokingf)) +
        x = "Gewicht",
        y = "Häufigkeit",
        fill = "Raucher") +
-  scale_fill_tableau("Nuriel Stone")
+  scale_fill_tableau("Nuriel Stone") +
+  theme_minimal()
 
 ```
+
 Die Nicht-Raucher haben bis 65 kg den höheren Anteil an der Verteilung, darüber gibt es mehr Raucher als Nicht-Raucher.
 
 ```{r message=FALSE}
@@ -262,10 +273,12 @@ ggplot(d_trainf, aes(x = height, fill = smokingf)) +
        x = "Größe",
        y = "Häufigkeit",
        fill = "Raucher") +
-  scale_fill_tableau("Nuriel Stone")
+  scale_fill_tableau("Nuriel Stone") +
+  theme_minimal()
 
 ```
-Es gibt sehr viel mehr kleinere Nicht-Raucher als kleine Raucher (klein: < 160 cm). Andersherum gibt es viel mehr große Raucher (groß: > 170 cm) als große Nicht-Raucher. Interessant wäre hierbei noch zu wissen, wie die Geschlechterverteilung aussieht, denn falls es mehr männliche als weibliche Raucher geben würde, dann macht es auch Sinn, dass es mehr große Raucher gibt. Leider gibt es dazu keine Daten in dem Datensatz.
+
+Es gibt sehr viel mehr kleinere Nicht-Raucher als kleine Raucher (klein: \< 160 cm). Andersherum gibt es viel mehr große Raucher (groß: \> 170 cm) als große Nicht-Raucher. Interessant wäre hierbei noch zu wissen, wie die Geschlechterverteilung aussieht, denn falls es mehr männliche als weibliche Raucher geben würde, dann macht es auch Sinn, dass es mehr große Raucher gibt. Leider gibt es dazu keine Daten in dem Datensatz.
 
 ```{r}
 #| code-fold: true
@@ -280,14 +293,16 @@ ggplot(d_trainf, aes(x = dental_caries, fill = smokingf)) +
        x = "Karies",
        y = "Häufigkeit",
        fill = "Raucher") +
-  scale_fill_tableau("Nuriel Stone")
+  scale_fill_tableau("Nuriel Stone") +
+  theme_minimal()
 
 ```
+
 Insgesamt gibt es viel weniger Menschen mit Karies, wobei es etwas mehr Raucher als Nicht-Raucher sind.
 
 ### 3.5 Boxplot
 
-Hier waren einmal typische Merkmalen der Beobachtungsfälle interessant als auch vereinzelte Daten zu biochemischen Signalen. 
+Hier waren einmal typische Merkmalen der Beobachtungsfälle interessant als auch vereinzelte Daten zu biochemischen Signalen.
 
 ```{r}
 #| code-fold: true
@@ -295,7 +310,8 @@ Hier waren einmal typische Merkmalen der Beobachtungsfälle interessant als auch
 ggplot(d_trainf, aes(x = smokingf, y = height, fill = smokingf)) +
   geom_boxplot() +
   labs(title = "Boxplot der Größe nach Raucherstatus", x = "Raucherstatus", y = "Größe") +
-  scale_fill_tableau("Nuriel Stone")
+  scale_fill_tableau("Nuriel Stone") +
+  theme_minimal()
 
 
 d_trainf |> 
@@ -303,7 +319,7 @@ d_trainf |>
   summarise(mean(height))
 ```
 
-Anscheinend sind Raucher (mean = 169.74 cm) im Durchschnitt etwas größer als Nicht-Raucher (mean = 161.79 cm). Zudem scheinen Nicht-Raucher breiter gestreut zu sein als Raucher. Die Verteilung zur Größer der Nicht-Raucher könnte möglicherweise auch nicht ganz normalverteilt sein. Die 
+Anscheinend sind Raucher (mean = 169.74 cm) im Durchschnitt etwas größer als Nicht-Raucher (mean = 161.79 cm). Zudem scheinen Nicht-Raucher breiter gestreut zu sein als Raucher. Die Verteilung zur Größer der Nicht-Raucher könnte möglicherweise auch nicht ganz normalverteilt sein. Die
 
 ```{r}
 #| code-fold: true
@@ -312,14 +328,15 @@ Anscheinend sind Raucher (mean = 169.74 cm) im Durchschnitt etwas größer als N
 ggplot(d_trainf, aes(x = smokingf, y = weight, fill = smokingf)) +
   geom_boxplot() +
   labs(title = "Boxplot des Gewichts nach Raucherstatus", x = "Raucherstatus", y = "Gewicht") +
-  scale_fill_tableau("Nuriel Stone")
+  scale_fill_tableau("Nuriel Stone") +
+  theme_minimal()
 
 d_trainf |> 
   group_by(smokingf) |> 
   summarise(mean(weight))
 ```
-Nicht-Raucher scheinen im Durchschnitt mit 63.24 kg etwas leichter zu sein als die Raucher mit 72.16 kg. Die Nicht-Raucher haben mehr Ausreißer nach oben hin, während es bei den Rauchern sowohl Ausreißer nach unten als nach oben gibt. Beide Gruppen scheinen nicht ganz normalverteilt zu sein. 
 
+Nicht-Raucher scheinen im Durchschnitt mit 63.24 kg etwas leichter zu sein als die Raucher mit 72.16 kg. Die Nicht-Raucher haben mehr Ausreißer nach oben hin, während es bei den Rauchern sowohl Ausreißer nach unten als nach oben gibt. Beide Gruppen scheinen nicht ganz normalverteilt zu sein.
 
 ```{r}
 #| code-fold: true
@@ -328,7 +345,8 @@ Nicht-Raucher scheinen im Durchschnitt mit 63.24 kg etwas leichter zu sein als d
 ggplot(d_trainf, aes(x = smokingf, y = age, fill = smokingf)) +
   geom_boxplot() +
   labs(title = "Boxplot des Alters nach Raucherstatus", x = "Raucherstatus", y = "Alter") +
-  scale_fill_tableau("Nuriel Stone")
+  scale_fill_tableau("Nuriel Stone") +
+  theme_minimal()
 
 d_trainf |> 
   group_by(smokingf) |> 
@@ -338,7 +356,8 @@ d_trainf |>
   group_by(smokingf) |> 
   count(age < 20)
 ```
-Raucher liegen mit 41.5 Jahren durschnittlich unter den Nicht-Rauchern mit 46.5 Jahren. Es gibt in beiden Gruppen keine Personen, die unter 20 Jahren sind, also wurden wohl nur Daten zu Personen >= 20 gesammelt. Beide Gruppen scheinen nicht ganz normalverteilt zu sein.
+
+Raucher liegen mit 41.5 Jahren durschnittlich unter den Nicht-Rauchern mit 46.5 Jahren. Es gibt in beiden Gruppen keine Personen, die unter 20 Jahren sind, also wurden wohl nur Daten zu Personen \>= 20 gesammelt. Beide Gruppen scheinen nicht ganz normalverteilt zu sein.
 
 ```{r}
 #| code-fold: true
@@ -347,14 +366,15 @@ Raucher liegen mit 41.5 Jahren durschnittlich unter den Nicht-Rauchern mit 46.5 
 ggplot(d_trainf, aes(x = smokingf, y = Cholesterol, fill = smokingf)) +
   geom_boxplot() +
   labs(title = "Boxplot Cholersterol nach Raucherstatus", x = "Raucherstatus", y = "Cholesterol") +
-  scale_fill_tableau("Nuriel Stone")
+  scale_fill_tableau("Nuriel Stone") +
+  theme_minimal()
 
 d_trainf |> 
   group_by(smokingf) |> 
   summarise(mean(Cholesterol))
 ```
-Die Cholosterol-Spiegel sind für beide Gruppen ähnlich. Auch sonst gibt es wenig Auffäligkeiten. 
 
+Die Cholosterol-Spiegel sind für beide Gruppen ähnlich. Auch sonst gibt es wenig Auffäligkeiten.
 
 ```{r}
 #| code-fold: true
@@ -363,13 +383,15 @@ Die Cholosterol-Spiegel sind für beide Gruppen ähnlich. Auch sonst gibt es wen
 ggplot(d_trainf, aes(x = smokingf, y = hemoglobin, fill = smokingf)) +
   geom_boxplot() +
   labs(title = "Boxplot des Hemoglobins nach Raucherstatus", x = "Raucherstatus", y = "Hemoglobin") +
-  scale_fill_tableau("Nuriel Stone")
+  scale_fill_tableau("Nuriel Stone") +
+  theme_minimal()
 
 d_trainf |> 
   group_by(smokingf) |> 
   summarise(mean(hemoglobin))
 ```
-Der Hämoglobin Wert für die Raucher liegt knapp über 15, während er bei den Nicht-Rauchern knapp unter 15 liegt. Bei den Nicht-Raucher gehen die Ausreißer jedoch auch unter den Wert 7.5, während es bei den Rauchern etwas mehr Ausreißer nach oben hin gibt bzw diese haben höhere Werte als die Ausreißer der Nicht-Raucher. 
+
+Der Hämoglobin Wert für die Raucher liegt knapp über 15, während er bei den Nicht-Rauchern knapp unter 15 liegt. Bei den Nicht-Raucher gehen die Ausreißer jedoch auch unter den Wert 7.5, während es bei den Rauchern etwas mehr Ausreißer nach oben hin gibt bzw diese haben höhere Werte als die Ausreißer der Nicht-Raucher.
 
 ## 4. Effekte identifizieren
 
@@ -386,21 +408,21 @@ plot(rope(m1))
 
 vif(m1)
 ```
-Anscheinend haben nur 2 Variablen wirklich Einfluss auf die AV, und zwar `hemoglobin` und `dental_caries`. 
-Es wurde aber als Warnung ausgegeben, dass es eine mögliche Multikollinearität zwischen `relaxation` und `sysolic`, `HDL` und `Cholosterol`, `HDL` und `triglyceride` und `waist`und `weight`gibt. Dadurch könnten die Ergebnisse verfälscht werden und der Anteil, der sich im rope befindet, verschieben. Deshalb ist es schwierig zu sagen, ob noch andere Variablen einen identifizierten Effekt auf die AV haben.
 
-Der Varianzinflationsfaktor (VIF) wird verwendet, um Multikollinearität zwischen den Prädiktoren in einem Regressionsmodell zu quantifizieren. Die betroffenen Variablen scheinen alle ein höheren Faktor zu haben als die anderen. 
+Anscheinend haben nur 2 Variablen wirklich Einfluss auf die AV, und zwar `hemoglobin` und `dental_caries`. Es wurde aber als Warnung ausgegeben, dass es eine mögliche Multikollinearität zwischen `relaxation` und `sysolic`, `HDL` und `Cholosterol`, `HDL` und `triglyceride` und `waist`und `weight`gibt. Dadurch könnten die Ergebnisse verfälscht werden und der Anteil, der sich im rope befindet, verschieben. Deshalb ist es schwierig zu sagen, ob noch andere Variablen einen identifizierten Effekt auf die AV haben.
 
-Es macht aber Sinn, dass die Variablen-Pärchen eine Korrelation aufweisen, denn zum Beispiel stehen die Variablen `relaxation` und `sysolic` beide im Zusammenhang mit dem Blutdruck, genauso wie es bei dem Taillenumfang (waist) und Gewicht auch Sinn macht, dass sie miteinander korrelieren. 
+Der Varianzinflationsfaktor (VIF) wird verwendet, um Multikollinearität zwischen den Prädiktoren in einem Regressionsmodell zu quantifizieren. Die betroffenen Variablen scheinen alle ein höheren Faktor zu haben als die anderen.
 
-
+Es macht aber Sinn, dass die Variablen-Pärchen eine Korrelation aufweisen, denn zum Beispiel stehen die Variablen `relaxation` und `sysolic` beide im Zusammenhang mit dem Blutdruck, genauso wie es bei dem Taillenumfang (waist) und Gewicht auch Sinn macht, dass sie miteinander korrelieren.
 
 ## 5. Workflows
 
 ### 5.1 Rezept erstellen
+
 Verschiedene Rezepte mit unterschiedlicher Vorverarbeitung, um am Ende das beste zu finden.
 
 Aufgrund von hohen Rechenzeiten habe ich mich dafür entschieden, mein test-sample aus dem Split-Objekt zu verwenden.
+
 ```{r}
 # Rezept basic
 rec1 <-
@@ -472,8 +494,8 @@ sum(is.na(d_baked6))
 
 ```
 
-
 ### 5.2 Kreuzvalidierung
+
 ```{r}
 set.seed(42)
 cv_scheme <- vfold_cv(test,
@@ -483,6 +505,7 @@ cv_scheme <- vfold_cv(test,
 ```
 
 ### 5.3 Modelle
+
 ```{r}
 
 # Baum
@@ -528,6 +551,7 @@ mod_knn <-
 ```
 
 ### 5.4 Zusammenfassen von Modellen und Rezepten
+
 ```{r eval=FALSE}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -567,7 +591,9 @@ workflow6 <-
   add_model(mod_boost) |> 
   add_recipe(rec6)
 ```
+
 ### 5.5 Tuning
+
 ```{r eval=FALSE}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -626,7 +652,9 @@ smokingset6 <-
   verbose = TRUE)
 toc()
 ```
+
 Bester Workflow, dieser hat sich durch ausprobieren der Workflowsets ergeben. Aufgrund von Rechenzeitersparnis wird hier nur noch mit dem besten Workflow weitergearbeitet.
+
 ```{r}
 # mit Rezept 6
 set.seed(42)
@@ -640,6 +668,7 @@ toc()
 ```
 
 ### 5.6 Modellvergelich
+
 ```{r eval=FALSE}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -683,25 +712,26 @@ smokingset6 %>%
   collect_metrics() %>% 
   arrange(mean) 
 ```
+
 Bestes Workflowset:
+
 ```{r}
 # mit Rezept 6
 tune6 |> collect_metrics()
 autoplot(tune6)
 ```
 
-
 ### 5.7 Bestes Model wählen
 
 Der beste workflow scheint eine Kombination aus einem xgBoost-Modell und dem 6. Rezept zu sein. Die accuracy liegt bei ca. 0.771 und der roc_auc wert bei 0.856.
+
 ```{r}
 best_model6 <-
   fit_best(tune6)
 ```
 
-
-
 ## 6. Ergebnisse
+
 ```{r}
 final_preds6 <- 
   best_model6 %>% 
@@ -716,9 +746,10 @@ submission <-
 
 ```
 
-
 ### 6.1 ROC AUC-Kurve
+
 Anhand dem eigenen train-sample wird die roc-auc Kurve dargestellt.
+
 ```{r}
 probe <- 
   best_model6 %>% 
@@ -740,11 +771,13 @@ ggroc(rocobj, colour = 'cyan', size = 1) +
   scale_fill_tableau("Nuriel Stone")
   
 ```
+
 Das Modell ist in der Lage, die positiven Fälle von den negativen Fällen mit einer Wahrscheinlichkeit von ca. 86 % zu unterscheiden.
 
 Es ist wichtig zu beachten, dass der ROC AUC-Wert nur ein Maß für die Fähigkeit eines Modells ist, die positiven Fälle von den negativen Fällen zu unterscheiden. Er sagt nichts darüber aus, wie gut das Modell die tatsächlichen Werte der positiven Fälle vorhersagt.
 
 ### 6.2 Confusionsmatrix
+
 ```{r}
 probe2 <-
   probe |> 
@@ -758,30 +791,27 @@ probe2 <-
 confusion_matrix <- confusionMatrix(probe2$smokingf, probe2$predf)
 print(confusion_matrix)
 ```
+
 Die Sensitivität ist ein Maß dafür, wie gut das Modell positive Fälle (Nicht-Raucher) erkennt. In diesem Fall ist die Sensitivität von 0,8271 gut. Das Modell erkennt 82,71 % der positiven Fälle korrekt.
 
 Die Spezifität ist ein Maß dafür, wie gut das Modell negative Fälle (Raucher) erkennt. In diesem Fall ist die Spezifität von 0,7194 auch gut. Das Modell erkennt 71,94 % der negativen Fälle korrekt.
 
 ## 7. Fazit
-Es sollten innerhalb dieser Analyse zwei Fragen bzw. Aufgaben bewältigit werden. Zum einem sollten die mögliche Effekte auf den Raucherstatus identifiziert werden, zum anderen sollten Beobachtungsfälle aufgrund ihrer biologischen Daten nach ihrem Raucherstatus klassifiziert werden bzw. es sollte die Wahrscheinlichkeit, ob jemand Raucher ist, angegeben werden. 
 
-Es wurden zwei Effekte auf die AV `smoking` identifiziert, einmal `hemoglobin` und `dental_caries`. Es kann jedoch nicht mit Sicherheit gesagt werden, ob es nicht noch mehr geben könnte, denn im Modell befinden sich Hinweise auf eine mögliche Multikollinerität. 
+Es sollten innerhalb dieser Analyse zwei Fragen bzw. Aufgaben bewältigit werden. Zum einem sollten die mögliche Effekte auf den Raucherstatus identifiziert werden, zum anderen sollten Beobachtungsfälle aufgrund ihrer biologischen Daten nach ihrem Raucherstatus klassifiziert werden bzw. es sollte die Wahrscheinlichkeit, ob jemand Raucher ist, angegeben werden.
+
+Es wurden zwei Effekte auf die AV `smoking` identifiziert, einmal `hemoglobin` und `dental_caries`. Es kann jedoch nicht mit Sicherheit gesagt werden, ob es nicht noch mehr geben könnte, denn im Modell befinden sich Hinweise auf eine mögliche Multikollinerität.
 
 Das Klassifikations-Modell ist in der Lage, die positiven Fälle von den negativen Fällen mit einer Wahrscheinlichkeit von ca. 86 % zu unterscheiden.
 
-
-Im Allgemeinen kann man sagen:
-Die Klassifikation des Raucherstatus auf der Grundlage biologischer Signale hat einige Vorteile gegenüber der Klassifikation auf der Grundlage von Selbstberichten. Selbstberichte sind anfällig für Verzerrungen, z. B. soziale Erwünschtheit oder Erinnerungsfehler. Biologische Signale hingegen sind objektive Messungen, die nicht von den subjektiven Wahrnehmungen der Person abhängen.
+Im Allgemeinen kann man sagen: Die Klassifikation des Raucherstatus auf der Grundlage biologischer Signale hat einige Vorteile gegenüber der Klassifikation auf der Grundlage von Selbstberichten. Selbstberichte sind anfällig für Verzerrungen, z. B. soziale Erwünschtheit oder Erinnerungsfehler. Biologische Signale hingegen sind objektive Messungen, die nicht von den subjektiven Wahrnehmungen der Person abhängen.
 
 Es gibt jedoch auch einige Herausforderungen bei der Klassifikation des Raucherstatus auf der Grundlage biologischer Signale. Zum einen sind die biologischen Signale von Rauchern und Nichtrauchern nicht immer eindeutig voneinander zu unterscheiden. Zum anderen können die biologischen Signale durch andere Faktoren beeinflusst werden, z. B. durch die Ernährung oder die Einnahme von Medikamenten.
 
 ## 8. Quellen
-Raucheranteil Deutschland: WHO. (31. August, 2015). Anteil der Raucher in Deutschland nach Geschlecht in den Jahren 2000 bis 2025 [Graph]. In Statista. Zugriff am 12. Januar 2024, von https://de.statista.com/statistik/daten/studie/596512/umfrage/verbreitung-des-rauchens-in-deutschland-nach-geschlecht/ 
 
-Triglyceride-Werte: 
-Rassow, J., & Netzker, D. (2016). Duale Reihe Biochemie, Thieme. Edited by J. Rassow et al. Stuttgart: Georg Thieme Verlag. 
+Raucheranteil Deutschland: WHO. (31. August, 2015). Anteil der Raucher in Deutschland nach Geschlecht in den Jahren 2000 bis 2025 \[Graph\]. In Statista. Zugriff am 12. Januar 2024, von https://de.statista.com/statistik/daten/studie/596512/umfrage/verbreitung-des-rauchens-in-deutschland-nach-geschlecht/
 
-Hämoglobin-Werte: https://www.blutspende.de/magazin/von-a-bis-0/was-ist-haemoglobin-und-warum-ist-es-wichtig 
+Triglyceride-Werte: Rassow, J., & Netzker, D. (2016). Duale Reihe Biochemie, Thieme. Edited by J. Rassow et al. Stuttgart: Georg Thieme Verlag.
 
-
-
+Hämoglobin-Werte: https://www.blutspende.de/magazin/von-a-bis-0/was-ist-haemoglobin-und-warum-ist-es-wichtig

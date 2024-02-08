@@ -15,5 +15,5 @@ format:
     theme: minty
     css: styles.css
 
-editor: visual
+editor: source
 

@@ -4,5 +4,7 @@
 .httr-oauth
 .DS_Store
 .quarto
+.RDataTmp
+/ds2venv/
 
 /.quarto/
