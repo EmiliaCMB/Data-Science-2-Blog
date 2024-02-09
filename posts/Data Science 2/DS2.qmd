@@ -2,7 +2,7 @@
 title: "Hate Speech Klassifikation"
 author: "Emilia Braun"
 date: "2024-02-09"
-image: "hatspeech.jpeg"
+image: "hatespeech.jpeg"
 categories: [Textanalyse, Tidymodels, Klassifikation, Transformers, Neuronale Netze]
 format:
   html:
@@ -17,17 +17,18 @@ Verschiedene Tweets sollen auf Hate Speech überprüft und klassifiziert werden
 
 Die Klassifizierung von Hate Speech in Tweets ist ein bedeutendes Thema im Bereich der digitalen Kommunikation und sozialen Medien. Angesichts der zunehmenden Verbreitung von Hassrede im Internet ist es von entscheidender Bedeutung, effektive Methoden zu entwickeln, um solche Inhalte zu erkennen und einzudämmen.
 
-Warum könnte eine Klassifikation von Hate Speech interessieren? 
+Warum könnte eine Klassifikation von Hate Speech interessieren?
 
-----------
-* Schutz der Nutzer: Die Identifizierung von Hate Speech ermöglicht es Plattformen und Behörden, Maßnahmen zum Schutz der Nutzer vor Belästigung, Diskriminierung und Gewalt zu ergreifen.
-* Förderung der digitalen Sicherheit: Die Bekämpfung von Hassrede trägt zur Schaffung einer sichereren und respektvolleren Online-Umgebung bei, die die digitale Sicherheit und das Wohlbefinden fördert.
-*Eindämmung von sozialen Konflikten: Durch die frühzeitige Erkennung und Entfernung von Hate Speech kann die Eskalation sozialer Konflikte verhindert und die Förderung eines harmonischen sozialen Zusammenlebens unterstützt werden.
+------------------------------------------------------------------------
 
+-   Schutz der Nutzer: Die Identifizierung von Hate Speech ermöglicht es Plattformen und Behörden, Maßnahmen zum Schutz der Nutzer vor Belästigung, Diskriminierung und Gewalt zu ergreifen.
+-   Förderung der digitalen Sicherheit: Die Bekämpfung von Hassrede trägt zur Schaffung einer sichereren und respektvolleren Online-Umgebung bei, die die digitale Sicherheit und das Wohlbefinden fördert.
+-   Eindämmung von sozialen Konflikten: Durch die frühzeitige Erkennung und Entfernung von Hate Speech kann die Eskalation sozialer Konflikte verhindert und die Förderung eines harmonischen sozialen Zusammenlebens unterstützt werden.
 
 ## 2. Vorbereitung
 
 ### 2.1 Pakete laden
+
 ```{r  message=FALSE, warning=FALSE}
 library(tidyverse)
 library(tidymodels)
@@ -62,6 +63,7 @@ library(igraph)
 library(ggraph)
 library(readxl)
 library(topicmodels)
+library(glue)
 ```
 
 ### 2.2 Daten laden
@@ -86,10 +88,10 @@ data("nrc_emotions")
 colorsn <- c("#8175AAFF", "#6FB899FF", "#5E8A67FF", "#E87A90FF", "#A39FC9FF", "#94D0C0FF", "#AA7584", "#90B58B", "#027B8EFF",  "#E04F6C", "#028E5B", "#7A4FE0", "#B8996F", "#8E027B",  "#B8756F" )
 ```
 
-
-
+Das Schimpfwörterlexikon stammt von der Seite https://www.insult.wiki/.
 
 ### 2.3 Data Cleaning
+
 ```{r}
 hate2 <- d_hate |> 
   mutate(textclean = tweet)
@@ -104,9 +106,10 @@ hate2 <- hate2 %>%
   mutate(classc = as.factor(class))
 ```
 
-
 ### 2.4 Aufteilung in Train & Testdaten:
+
 Um overfitting zu vermeiden werden die Daten vor dem Trainieren der Modelle noch in Train und Testdaten aufgeteilt.
+
 ```{r}
 set.seed(42)
 d_hate2 <- d_hate |> 
@@ -116,8 +119,9 @@ train <- training(d_split)
 test <- testing(d_split)
 ```
 
-
 ## 3. Explorative Datenanalyse
+
+Ein Großteil der explorativen Datenanalyse orientiert sich an der [Treemap House of Horror](https://www.kaggle.com/code/headsortails/treemap-house-of-horror-spooky-eda-lda-features/report#shocking-sentiments), welche wiederum auf dem [tidyverse](https://www.tidyverse.org/) Packet basiert.
 
 ### 3.1 Überprüfen
 
@@ -127,8 +131,8 @@ sum(is.na(d_hate))
 visdat::vis_dat(d_hate, warn_large_data = FALSE)
 
 ```
-Im Datensatz gibt es keine fehlenden Werte.
-Sowohl `tweet` als auch `class` sind character-Variablen. Für die Klassifikation würde es eventuell Sinn machen `class` in eine factor Variable umzuwandeln.
+
+Im Datensatz gibt es keine fehlenden Werte. Sowohl `tweet` als auch `class` sind character-Variablen. Für die Klassifikation würde es eventuell Sinn machen `class` in eine factor Variable umzuwandeln.
 
 ### 3.3 Anteile der Faktorstufen der AV betrachten
 
@@ -147,31 +151,21 @@ d_hate |>
   count(class == "other") |> 
   mutate(Anteil = n/sum(n))
 ```
+
 Ca. 25 % der Daten sind der Klasse hate speech zugeordnet. Zum Trainieren der Modelle wäre ein höherer Anteil möglicherweise besser, aber diese Verteilung ist auf jeden Fall realistischer.
 
-### 3.2 Data Cleaning
+### 3.2 Tokenisierung
 
 ```{r}
-hate2 <- d_hate |> 
-  mutate(textclean = tweet)
-hate2$textclean <-  gsub("https\\S*", "", hate2$textclean)
-hate2$textclean <-  gsub("@\\S*", "", hate2$textclean) 
-hate2$textclean  <-  gsub("amp", "", hate2$textclean) 
-hate2$textclean  <-  gsub("[\r\n]", "", hate2$textclean)
-hate2$textclean  <-  gsub("[[:punct:]]", "", hate2$textclean)
-hate2$textclean <- gsub("(RT|via)((?:\\b\\w*@\\w+)+)","", hate2$textclean)
-
-hate2 <- hate2 %>%
-  mutate(classc = as.factor(class))
-  
-
 tweets <- hate2 %>%
   unnest_tokens(word, textclean)
 tweets <- tweets %>%
   anti_join(stop_words)
 
 ```
+
 Entfernen des Worts "rt", welches für retweet steht.
+
 ```{r}
 # Das zu entfernende Wort
 word_to_remove <- "rt"
@@ -179,8 +173,8 @@ word_to_remove <- "rt"
 tweets3 <- anti_join(tweets, data.frame(word = word_to_remove), by = "word")
 ```
 
-
 ### 3.3 Häufigste Wörter
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -199,6 +193,7 @@ tweets3 %>%
        subtitle = "Stop words removed from the list") +
   theme_minimal()
 ```
+
 Das mit Abstand am häufigsten verwendete Wort ist trash. Dieses kommt fast 800 Mal in den Daten vor, was vielleicht darauf zu schließen ist, dass es sowohl im negativen, neutralen als auch im hate speech Kontext vorkommen kann. Es könnte nämlich dabei um trash cans, trash talking oder um trash als Beleidung für Personen gehen.
 
 ### 3.4 Wortwolken
@@ -211,9 +206,11 @@ set.seed(42)
 wordcloud(tweets3$word, max.words = 200, min.freq=5, scale=c(2.2, 1), random.order=FALSE, rot.per=0.35, colors = colorsn)
 
 ```
+
 Auch in der Wortwolke sieht man nochmal, dass trash das am häufigsten verwendete Wort ist, wobei einige Wörter vom plot darüber hier nicht auftauchen.
 
 ### 3.5 Sentimentanalyse
+
 ```{r warning=FALSE}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -239,10 +236,11 @@ ggplot(data=sentimentscores,aes(x=sentiment,y=Score))+
   scale_fill_manual(values = colorsn)
 
 ```
+
 Es gibt mehr negativ gestimmte Tweets als positive, aber der Unterschied ist nicht so hoch. Die stärkste Stimmung scheint `trust`, also Vertrauen, zu sein, dicht gefolgt von `fear`. Das niedrigste Sentiment ist `suprise`. Jetzt wäre es noch interessant zu wissen wie sich die Sentimentanalyse noch jeweils für die beiden Klassen unterscheidet.
 
-
 FÜr die Klasse hate speech:
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -267,7 +265,9 @@ ggplot(data=sentimentscoresh,aes(x=sentiment,y=Score))+
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_fill_manual(values = colorsn)
 ```
+
 Wie zu erwarten mehr negative als positive Sentiments, jedoch ist `positive` immer noch erstaunlich hoch dafür, dass es hate speech ist. Insgesamt sind die negativen Sentimente wie `anger`, `fear`, `disgust` und `sadness` höher als die positiven, jedoch hätte ich gerade was `anger` und `distgust` angeht viel höhere Werte im Vergleich erwartet.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -292,7 +292,9 @@ ggplot(data=sentimentscoreso,aes(x=sentiment,y=Score))+
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_fill_manual(values = colorsn)
 ```
+
 Auch bei der Klasse other überwiegen negative Sentiments, jedoch nicht so stark. Den höchsten Score hat `trust`, dicht gefolgt von `fear`. Insgesamt ist die Verteilung sehr ähnlich zu den Scores von allen tweets.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -322,8 +324,8 @@ foo %>%
   
 
 ```
-Hier wird das Vorkommen der häufigsten Wörter in den beiden Klassen verglichen. Gut zu sehen ist dabei, dass manche Wörter erst im Kontext eine negative Bedeutung bekommen, wie z.B. trash oder white. Diese können sowohl der sachlichen Beschreibung als auch zur Beleidigung dienen. 
 
+Hier wird das Vorkommen der häufigsten Wörter in den beiden Klassen verglichen. Gut zu sehen ist dabei, dass manche Wörter erst im Kontext eine negative Bedeutung bekommen, wie z.B. trash oder white. Diese können sowohl der sachlichen Beschreibung als auch zur Beleidigung dienen.
 
 ### 3.7 Textlänge in Abhängigkeit der Klasse
 
@@ -343,6 +345,7 @@ ggplot(hate1, aes(x = class, y = text_length, color = class)) +
   scale_color_tableau("Nuriel Stone") +
   theme_minimal()
 ```
+
 Die Klasse `other` besitzt mehr Ausreißer nach oben hin, aber sonst scheint es keine großen Unterschiede zwischen beiden Klassen zu geben.
 
 ### 3.8 Histogramm der Textlänge
@@ -360,8 +363,8 @@ ggplot(hate1, aes(x = text_length)) +
   theme_minimal()
 
 ```
-Die Textlänge ist etwas linkschief verteilt, wobei ein Großteil der tweets unter 150 Zeichen hat. Die meisten Tweets wurden jedoch mit knapp 150 Zeichen verfasst. 
-Dies lässt sich möglicherweise durch das Alter der Daten erklären, denn bis 2017 waren Tweets auf 140 Zeichen begrenzt und danach waren erst mehr (aktuell 280) erlaubt. 
+
+Die Textlänge ist etwas linkschief verteilt, wobei ein Großteil der tweets unter 150 Zeichen hat. Die meisten Tweets wurden jedoch mit knapp 150 Zeichen verfasst. Dies lässt sich möglicherweise durch das Alter der Daten erklären, denn bis 2017 waren Tweets auf 140 Zeichen begrenzt und danach waren erst mehr (aktuell 280) erlaubt.
 
 ### 3.9 Boxplot
 
@@ -379,8 +382,9 @@ hate1 |>
   summarise(mean(text_length))
 
 ```
-Wie man zuvor schon sehen konnte, ist die Verteilung der beiden Klassen ungefähr gleich, jedoch liegt bei other die durchschnittliche Textlänge etwas höher und auch die Ausreißer haben eine höhere Textlänge.
-### 3.10 TF-IDF
+
+Wie man zuvor schon sehen konnte, ist die Verteilung der beiden Klassen ungefähr gleich, jedoch liegt bei other die durchschnittliche Textlänge etwas höher und auch die Ausreißer haben eine höhere Textlänge. \### 3.10 TF-IDF
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -400,11 +404,10 @@ tf_idf %>%
   theme(legend.position = "top", axis.text.x  = element_text(angle=45, hjust=1, vjust=0.9)) +
   scale_fill_manual(values = colorsn)
 ```
+
 TF-IDF gibt die Häufigkeit eines Wortes in einem spezifischen Kontext (also einer Klasse) innerhalb einer größeren Textsammlung (also alle Klassen) an. Dies ermöglicht es uns, Wörter zu identifizieren, die charakteristisch für eine bestimmte Klasse sind.
 
 Für die Klassifizierung von hate speech sind vor allem Beleidigungen wichtig, während other scheinbar neutrale Wörter enthält.
-
-
 
 ```{r}
 #| code-fold: true
@@ -424,9 +427,11 @@ tf_idf %>%
   labs(y = "TF-IDF values") +
   scale_fill_manual(values = colorsn)
 ```
+
 Hier sind nochmal die Wörter mit den höchsten TF-IDF-Werten nach Klasse aufgelistet. Auch hier ist gut zu erkennen, dass bei hate speech vor allem rassistische, diskriminierende und sexistische Beleidigungen verwendet werden, während bei other scheinbar wahllos Wörter auftauchen.
 
 ### 3.11 Bigrams
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -467,9 +472,11 @@ t2_tf_idf %>%
   scale_fill_manual(values = colorsn)
 
 ```
+
 Auch bei den TF-IDF-Werte für die Bigramme ist eindeutig zu essen, wie relevant Beleidigungen zur Erkennung von hate speech sind. Oftmals wurden hier einfach nur Beleidigungen kombiniert, während bei other entweder über Personen oder auch assiatische Massagen geredet wird.
 
 ### 3.12 Bigram-Netz
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -488,9 +495,11 @@ ggraph(bigram_graph, layout = "fr") +
   geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
   theme_void()
 ```
+
 Dieses Netz ist ein sehr gutes Beispiel um zu zeigen, wie manche scheinbar harmlose Wörter in Verbindungen mit anderen eine negative Bedeutung annehmen können. Bestes Beispiel ist hier trash: redet man über trash cans, dann mag es vielleicht nur um die Müllentsorgung gehen, während trash in Verbindung mit black eine starke Beleidigung gegenüber einer Bevölkerungsgruppe ist.
 
 ### 3.13 Negierte Begriffe
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -518,8 +527,10 @@ p1 <- bi_sep %>%
   scale_fill_manual(values = c("#E04F6C", "#5E8A67FF")) +
   theme_minimal()
 print(p1)
-``` 
+```
+
 Anscheinend gibt es mehr negative Wörter, die mit einem 'not' verneint wurden. Interessanterweise wird das Wort funny auch als negativ gewertet, was nicht wirklich Sinn macht. Im Zusammenhang mit 'not' ist es natürlich sinnvoll, es als negativ einzuordnen.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -544,7 +555,9 @@ p2 <- bi_sep %>%
   theme_minimal()
 print(p2)
 ```
-Auch in der Klasse other gibt es mehr negative als positive Wörter. Dies war uns ja schon vorher aus der Sentimentanalyse bewusst, deswegen ist es hier nocheinmal interessant zu sehen, dass die negative Bedeutung dieser Wörter durch das 'not' aufgehoben wird. Zudem taucht auch hier das Wort trash auf. 
+
+Auch in der Klasse other gibt es mehr negative als positive Wörter. Dies war uns ja schon vorher aus der Sentimentanalyse bewusst, deswegen ist es hier nocheinmal interessant zu sehen, dass die negative Bedeutung dieser Wörter durch das 'not' aufgehoben wird. Zudem taucht auch hier das Wort trash auf.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -570,9 +583,11 @@ p3 <- bi_sep %>%
 
 print(p3)
 ```
+
 Für die Klasse hate speech gibt es auch mehr negative als positive Wörter. Dies war uns ebenfalls schon vorher aus der Sentimentanalyse bewusst, deswegen ist es hier nocheinmal interessant zu sehen, dass die negative Bedeutung dieser Wörter durch das 'not' aufgehoben wird. Was hier aber auffällt, vor allem im Vergleich zur anderen Klasse, ist dass hier viele negativen Wörter gar nicht so schlimm sind, also z.B. afraid oder bitter. In der anderen Klasse gab es dagegen die Wörter kill, jealous und cripple. Also wurden dort schlimmere Wörter durch ein 'not' aufgehoben, während bei hate speech nur meiner Meinung nach schwach negative Begriffe negiert werden.
 
 ### 3.14 Themenanalyse
+
 ```{r}
 freq <-tweets %>%
   count(id, word)
@@ -598,11 +613,13 @@ t1_topics %>%
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
 Die Themenfelder lassen sich hier in Beleidigungen und zufällige Themen einteilen. Gerade unter den Beleidigungen gibt es nochmal Abstufungen zwischen "allgemeinen" Beleidigungen und rassistischen. Bei den allgemeinen Themen geht es unter anderem um die yankees, positive Gefühle und Vögel. So wirklich etwas aussagen tut aber keiner dieser Themenfelder, dafür sind sie sich gerade bei den Beleidigungen einfach viel zu ähnlich.
 
 ## 4. tidymodels
 
 ### 4.1 Rezept erstellen
+
 Verschiedene Rezepte mit unterschiedlicher Vorverarbeitung, um am Ende das beste zu finden.
 
 ```{r}
@@ -651,8 +668,8 @@ sum(is.na(d_baked2))
 
 ```
 
-
 ### 4.2 Kreuzvalidierung
+
 ```{r}
 set.seed(42)
 cv_scheme <- vfold_cv(train,
@@ -662,6 +679,7 @@ cv_scheme <- vfold_cv(train,
 ```
 
 ### 4.3 Modelle
+
 ```{r}
 
 # Baum
@@ -700,8 +718,9 @@ mod_logreg <- logistic_reg(
 ```
 
 ### 4.4 Workflows erstellen
-Die Zahlenbenennung der Workflows ist immer die Kombination aus welchem Modell (1-4) und welches Rezept (1-2)
-Ich habe mich gezielt gegen Workflowsets entschieden, da die Rechenzeit für meinen Computer dafür immer sehr lange dauert.
+
+Die Zahlenbenennung der Workflows ist immer die Kombination aus welchem Modell (1-4) und welches Rezept (1-2) Ich habe mich gezielt gegen Workflowsets entschieden, da die Rechenzeit für meinen Computer dafür immer sehr lange dauert.
+
 ```{r}
 # Rezept 1 mit decision tree
 workflow11 <-
@@ -751,9 +770,11 @@ workflow41 <-
   #add_model(mod_logreg) |> 
   #add_recipe(rec2)
 ```
+
 ### 4.5 Tuning
 
 Bestes Workflowset
+
 ```{r}
 # tune11
 set.seed(42)
@@ -809,6 +830,7 @@ toc()
 ```
 
 ### 4.6 Modellvergelich
+
 ```{r}
 # mit Rezept 6
 tune11 |> collect_metrics()
@@ -827,14 +849,12 @@ tune41 |> collect_metrics()
 
 ```
 
-
-### 4.7 Bestes Model wählen
+### 4.7 Bestes Modell wählen
 
 ```{r}
 best_model31 <-
   fit_best(tune31)
 ```
-
 
 ```{r}
 final_preds31 <- 
@@ -844,10 +864,10 @@ final_preds31 <-
 
 ```
 
-
-
 ### 4.8 ROC AUC-Kurve
+
 Anhand dem eigenen train-sample wird die roc-auc Kurve dargestellt.
+
 ```{r}
 test2 <- final_preds31 |> 
   mutate(class = as.numeric(class))
@@ -866,42 +886,63 @@ ggroc(rocobj, colour = 'cyan', size = 1) +
   theme_minimal()
   
 ```
+
 Das Modell ist in der Lage, die positiven Fälle von den negativen Fällen mit einer Wahrscheinlichkeit von ca. 59 % zu unterscheiden. Es kann also nur etwas besser als der Zufall entscheiden.
 
 Es ist wichtig zu beachten, dass der ROC AUC-Wert nur ein Maß für die Fähigkeit eines Modells ist, die positiven Fälle von den negativen Fällen zu unterscheiden. Er sagt nichts darüber aus, wie gut das Modell die tatsächlichen Werte der positiven Fälle vorhersagt.
 
-
-
 ### 4.9 Confusionsmatrix
+
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
 final_preds312 <-
   final_preds31 |> 
   bind_cols(test)
 
 confusion_matrix <- confusionMatrix(final_preds31$class, final_preds31$.pred_class)
 print(confusion_matrix)
-```
-Die Sensitivität ist ein Maß dafür, wie gut das Modell positive Fälle (hate speech) erkennt. In diesem Fall ist die Sensitivität von 0,74 gut. Das Modell erkennt 73,68 % der positiven Fälle korrekt.
 
-Die Spezifität ist ein Maß dafür, wie gut das Modell negative Fälle (other) erkennt. In diesem Fall ist die Spezifität von 0,7794 auch gut. Das Modell erkennt 77,94 % der negativen Fälle korrekt.
+sensitivity1 <- confusion_matrix[["byClass"]][["Sensitivity"]]
+sensitivityp1 <- round(sensitivity1*100, digits = 2)
+specificity1 <- confusion_matrix[["byClass"]][["Specificity"]]
+specificityp1 <- round(specificity1*100, digits = 2)
+accuracy1 <- confusion_matrix[["overall"]][["Accuracy"]]
+accuracyp1 <- round(accuracy1*100, digits = 2)
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+glue('Die Accuracy gibt an, wie viele der insgesamt vorhergesagten Klassen mit den tatsächlichen Klassen übereinstimmen, gemessen als Anteil der korrekt klassifizierten Instanzen an der Gesamtzahl der Instanzen im Datensatz. Bei diesem Modell liegt die Accuracy bei {accuracy1}, d.h. es wurden {accuracyp1} % der Fälle richtig klassifiziert.
+
+Die Sensitivität ist ein Maß dafür, wie gut das Modell positive Fälle (hate speech) erkennt. In diesem Fall ist die Sensitivität von {sensitivity1} gut. Das Modell erkennt {sensitivityp1} % der positiven Fälle korrekt.
+
+Die Spezifität ist ein Maß dafür, wie gut das Modell negative Fälle (other) erkennt. In diesem Fall ist die Spezifität von {specificity1} auch gut. Das Modell erkennt {specificityp1} % der negativen Fälle korrekt.')
+```
 
 ## 5. hugging face Modell
 
 ### 5.1 Virtual Environment
+
 ```{r}
 library(reticulate)
 
 use_virtualenv("~/Blog/Blogecmb/ds2venv")
 ```
 
-### 5.2 Model festlegen
+### 5.2 Modell festlegen
+
 ```{python}
 import tensorflow
 from transformers import pipeline
 
 classifier = pipeline("text-classification", model="facebook/roberta-hate-speech-dynabench-r4-target")
 ```
+
 ### 5.3 Klassifizieren
+
 ```{r}
 tweetsonly <- test$tweet
 ```
@@ -911,7 +952,6 @@ tweets = r.tweetsonly
 
 result = classifier(tweets)
 ```
-
 
 ```{r}
 result <- py$result
@@ -934,36 +974,56 @@ test3 <-
          hatespeech = factor(hatespeech))
 ```
 
+### 5.4 Ergebnis
+
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+
+
 my_metrics2 <- metric_set(accuracy, f_meas)
 my_metrics2(test3,
            truth = class,
            estimate = hatespeech)
 ```
 
-
-### 5.4 Ergebnis
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 confusion_matrix2 <- confusionMatrix(test3$class, test3$hatespeech)
 print(confusion_matrix2)
-```
-Die Sensitivität ist ein Maß dafür, wie gut das Modell positive Fälle (hate speech) erkennt. In diesem Fall ist die Sensitivität von 0,74 gut. Das Modell erkennt 73,68 % der positiven Fälle korrekt.
 
-Die Spezifität ist ein Maß dafür, wie gut das Modell negative Fälle (other) erkennt. In diesem Fall ist die Spezifität von 0,7794 auch gut. Das Modell erkennt 77,94 % der negativen Fälle korrekt.
+sensitivity2 <- confusion_matrix2[["byClass"]][["Sensitivity"]]
+sensitivityp2 <- round(sensitivity2*100, digits = 2)
+specificity2 <- confusion_matrix2[["byClass"]][["Specificity"]]
+specificityp2 <- round(specificity2*100, digits = 2)
+accuracy2 <- confusion_matrix2[["overall"]][["Accuracy"]]
+accuracyp2 <- round(accuracy2*100, digits = 2)
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+glue('Die Accuracy gibt an, wie viele der insgesamt vorhergesagten Klassen mit den tatsächlichen Klassen übereinstimmen, gemessen als Anteil der korrekt klassifizierten Instanzen an der Gesamtzahl der Instanzen im Datensatz. Bei diesem Modell liegt die Accuracy bei {accuracy2}, d.h. es wurden {accuracyp2} % der Fälle richtig klassifiziert.
+
+Die Sensitivität ist ein Maß dafür, wie gut das Modell positive Fälle (hate speech) erkennt. In diesem Fall ist die Sensitivität von {sensitivity2} gut. Das Modell erkennt {sensitivityp2} % der positiven Fälle korrekt.
+
+Die Spezifität ist ein Maß dafür, wie gut das Modell negative Fälle (other) erkennt. In diesem Fall ist die Spezifität von {specificity2} auch gut. Das Modell erkennt {specificityp2} % der negativen Fälle korrekt.')
+```
 
 ## 6. Fazit
 
+Im Vergleich schneidet das hugging face Modell deutlich besser ab als das tidymodels-Modell, was aber natürlich auch an meiner Vorverarbeitung liegen kann.
 
-Das Klassifikations-Modell ist in der Lage, die positiven Fälle von den negativen Fällen mit einer Wahrscheinlichkeit von ca. 86 % zu unterscheiden.
+Durch die EDA ist ganz klar die Relevanz von Schimpfwörtern zur Erkennung von hate speech hervorgestochen, weswegen es auch wichtig für das tidymodels Rezept war. Leider hat mit tidymodels nicht alles ganz so gut funktioniert, was oft auch an der sehr hohen Rechenzeit war, weswegen hier vielleicht nicht das volle Potenzial ausgeschöpft wurde.
 
-
-
+Alles in allem, konnte man durch die EDA sehr viele Rückschlüsse ziehen, wobei für mich vor allem das Bigram-Netz interessant war. Hier konnte man nämlich sehr gut erkennen, wie wichtig der Kontext für die Verwendung von bestimmten Wörtern ist, denn so kann die Bedeutung ganz schnell von einer neutralen Beschreibung zu einer Beleidigung wechseln.
 
 ## 7. Quellen
+
 ```{r}
 sessionInfo()
 ```
-
-
-
-

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>ecmbblog - Blog</title>
+<title>ecmbblog - test</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -30,8 +30,6 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -60,38 +58,7 @@ ul.task-list li input[type="checkbox"] {
     "search-submit-button-title": "Submit"
   }
 }</script>
-<script>
 
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
-
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-author','listing-image','listing-description','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description","listing-categories"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
-
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -130,174 +97,39 @@ ul.task-list li input[type="checkbox"] {
     </nav>
 </header>
 <!-- content -->
-<header id="title-block-header" class="quarto-title-block default page-columns page-full">
-  <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-page-left">
-      <h1 class="title">Blog</h1>
-                      </div>
-  </div>
-    
-  
-  <div class="quarto-title-meta">
-
-      
-    
-      
-    </div>
-    
-  
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(3)</span></div><div class="category" data-category="Gesundheit">Gesundheit <span class="quarto-category-count">(1)</span></div><div class="category" data-category="Klassifikation">Klassifikation <span class="quarto-category-count">(3)</span></div><div class="category" data-category="Neuronale Netze">Neuronale Netze <span class="quarto-category-count">(1)</span></div><div class="category" data-category="Textanalyse">Textanalyse <span class="quarto-category-count">(2)</span></div><div class="category" data-category="Tidymodels">Tidymodels <span class="quarto-category-count">(3)</span></div><div class="category" data-category="Transformers">Transformers <span class="quarto-category-count">(1)</span></div></div></div>
+    </div>
 <!-- main -->
-<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">test</h1>
+</div>
 
 
 
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p>Die Accuracy gibt an, wie viele der insgesamt vorhergesagten Klassen mit den tatsächlichen Klassen übereinstimmen, gemessen als Anteil der korrekt klassifizierten Instanzen an der Gesamtzahl der Instanzen im Datensatz. Bei diesem Modell liegt die Accuracy bei <code>r accuracy</code>, d.h. es wurden <code>r accuracyp</code> % der Fälle richtig klassifiziert.</p>
+<p>Die Sensitivität ist ein Maß dafür, wie gut das Modell positive Fälle (hate speech) erkennt. In diesem Fall ist die Sensitivität von <code>r sensitivity</code> gut. Das Modell erkennt <code>r sensitivityp</code> % der positiven Fälle korrekt.</p>
+<p>Die Spezifität ist ein Maß dafür, wie gut das Modell negative Fälle (other) erkennt. In diesem Fall ist die Spezifität von <code>r specificity</code> auch gut. Das Modell erkennt <code>r specificityp</code> % der negativen Fälle korrekt.</p>
 
 
 
-
-
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="Textanalyse,Tidymodels,Klassifikation,Transformers,Neuronale Netze" data-listing-date-sort="1707433200000" data-listing-file-modified-sort="1707479622765" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="22">
-<div class="thumbnail">
-<p><a href="./posts/Data Science 2/DS2.html"> <img src="./posts/Data Science 2/hatspeech.jpeg" class="thumbnail-image"> </a></p>
-</div>
-<div class="body">
-<a href="./posts/Data Science 2/DS2.html">
-<h3 class="no-anchor listing-title">
-Hate Speech Klassifikation
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-<div class="listing-category" onclick="window.quartoListingCategory('Textanalyse'); return false;">
-Textanalyse
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('Tidymodels'); return false;">
-Tidymodels
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('Klassifikation'); return false;">
-Klassifikation
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('Transformers'); return false;">
-Transformers
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('Neuronale Netze'); return false;">
-Neuronale Netze
-</div>
-</div>
-<a href="./posts/Data Science 2/DS2.html">
-<div class="listing-description">
-Verschiedene Tweets sollen auf Hate Speech überprüft und klassifiziert werden
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/Data Science 2/DS2.html">
-<div class="listing-date">
-Feb 9, 2024
-</div>
-<div class="listing-author">
-Emilia Braun
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="1" data-categories="Tidymodels,Klassifikation,Gesundheit" data-listing-date-sort="1705014000000" data-listing-file-modified-sort="1706476597299" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="18">
-<div class="thumbnail">
-<p><a href="./posts/Angewandtes Projekt/Projekt.html"> <img src="./posts/Angewandtes Projekt/raucher.jpeg" class="thumbnail-image"> </a></p>
-</div>
-<div class="body">
-<a href="./posts/Angewandtes Projekt/Projekt.html">
-<h3 class="no-anchor listing-title">
-Raucherstatus Klassifikation
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-<div class="listing-category" onclick="window.quartoListingCategory('Tidymodels'); return false;">
-Tidymodels
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('Klassifikation'); return false;">
-Klassifikation
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('Gesundheit'); return false;">
-Gesundheit
-</div>
-</div>
-<a href="./posts/Angewandtes Projekt/Projekt.html">
-<div class="listing-description">
-Anhand von verschiedenen biologischen Daten und Signalen soll in einer Soft Classification bestimmt werden, mit welcher Wahrscheinlichkeit eine Person Raucher ist.
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/Angewandtes Projekt/Projekt.html">
-<div class="listing-date">
-Jan 12, 2024
-</div>
-<div class="listing-author">
-Emilia Braun
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="2" data-categories="Textanalyse,Tidymodels,Klassifikation" data-listing-date-sort="1701126000000" data-listing-file-modified-sort="1706476536359" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5">
-<div class="thumbnail">
-<p><a href="./posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html"> <img src="./posts/Miniprojekt/hatespeech.jpg" class="thumbnail-image"> </a></p>
-</div>
-<div class="body">
-<a href="./posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html">
-<h3 class="no-anchor listing-title">
-Klassifikation von Hate Speech
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-<div class="listing-category" onclick="window.quartoListingCategory('Textanalyse'); return false;">
-Textanalyse
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('Tidymodels'); return false;">
-Tidymodels
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('Klassifikation'); return false;">
-Klassifikation
-</div>
-</div>
-<a href="./posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html">
-<div class="listing-description">
-Textanalyse zur Klassifikation von Hatespeech
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/Miniprojekt/Miniprojekt_tidymodels_EmiliaBraun.html">
-<div class="listing-date">
-Nov 28, 2023
-</div>
-<div class="listing-author">
-Emilia Braun
-</div>
-</a>
-</div>
-</div>
-</div>
-<div class="listing-no-matching d-none">
-No matching items
-</div>
-</div></main> <!-- /main -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

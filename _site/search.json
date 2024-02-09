@@ -432,5 +432,12 @@
     "title": "Klassifikation von Hate Speech",
     "section": "pred2",
     "text": "pred2\n\ntic()\npreds2 &lt;-\n  predict(fit2, new_data = germeval_test)\ntoc()\n\n22.19 sec elapsed\n\n\n\nd_test &lt;-\n  germeval_test |&gt; \n  bind_cols(preds) |&gt; \n  mutate(c1 = as.factor(c1))\n\nd_test2 &lt;-\n  germeval_test |&gt; \n  bind_cols(preds2) |&gt; \n  mutate(c1 = as.factor(c1))\n\n\nmy_metrics &lt;- metric_set(accuracy, f_meas)\nmy_metrics(d_test,\n           truth = c1,\n           estimate = .pred_class)\n\n\n\n  \n\n\nmy_metrics &lt;- metric_set(accuracy, f_meas)\nmy_metrics(d_test2,\n           truth = c1,\n           estimate = .pred_class)"
+  },
+  {
+    "objectID": "tets.html",
+    "href": "tets.html",
+    "title": "test",
+    "section": "",
+    "text": "Die Accuracy gibt an, wie viele der insgesamt vorhergesagten Klassen mit den tatsächlichen Klassen übereinstimmen, gemessen als Anteil der korrekt klassifizierten Instanzen an der Gesamtzahl der Instanzen im Datensatz. Bei diesem Modell liegt die Accuracy bei r accuracy, d.h. es wurden r accuracyp % der Fälle richtig klassifiziert.\nDie Sensitivität ist ein Maß dafür, wie gut das Modell positive Fälle (hate speech) erkennt. In diesem Fall ist die Sensitivität von r sensitivity gut. Das Modell erkennt r sensitivityp % der positiven Fälle korrekt.\nDie Spezifität ist ein Maß dafür, wie gut das Modell negative Fälle (other) erkennt. In diesem Fall ist die Spezifität von r specificity auch gut. Das Modell erkennt r specificityp % der negativen Fälle korrekt."
   }
 ]
